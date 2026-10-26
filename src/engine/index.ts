@@ -19,6 +19,7 @@ export { tolerance, type OptimiseOptions, type OptimiseStep } from "./optimise";
 export { ALIGNMENTS, FS_DSP, sections, type Biquad, type FilterKind } from "./digital";
 export { TOPOLOGY_LIBRARY, legacyTopologies, type Topology, type TopologyPart } from "./passive";
 export { interpLogF, nearestIndex } from "./complex";
+export { assess, suggest, resistorPower, GROUPS, RESISTOR_RATING_W, TEST_POWER_W, type Assessment, type Criterion, type CriterionGroup, type Rating, type Suggestion } from "./assess";
 
 /** The text DigitalCrossover.m prints for the MiniDSP custom biquads (byte-identical). */
 export function minidspText(_p: Prepared | null, fc: number, kind: FilterKind, align: Align): string {

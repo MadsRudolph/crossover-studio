@@ -40,7 +40,7 @@ Motion `--ease: cubic-bezier(.2,.8,.2,1)`, `--t-fast 120ms`, `--t 220ms`; respec
 ├ status bar: metrics chips (spread, crossovers, f3, min load) · probe frequency · profile · engine time ┤
 ```
 Panels resizable (drag handles), bottom dock collapsible. Keyboard: ⌘/Ctrl+K palette, Ctrl+Z/Y,
-1–8 switch views, S snapshot, O optimise, E export, P focus probe, X x-ray.
+1–9 switch views, S snapshot, O optimise, E export, P focus probe, X x-ray.
 
 ## Shared conventions
 - Units always shown: Hz/kHz (format via `src/ui/format.ts`), dB, Ω, mH, µF, mm.

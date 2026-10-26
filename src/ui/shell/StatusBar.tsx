@@ -8,6 +8,7 @@ import { Tooltip } from "../Tooltip";
 import { fmtDb, fmtFreq, fmtMs, fmtOhm, parseNumber } from "../format";
 import { focusControl } from "./commands";
 import { CHECK_FOCUS } from "../inspector/focus";
+import { ScoreBadge } from "../../views/ScoreBadge";
 
 interface Chip { id: string; label: string; value: string; check?: Check }
 
@@ -72,6 +73,7 @@ export function StatusBar() {
   return (
     <footer className="cs-statusbar" aria-label="Status">
       <div className="cs-sb-chips">
+        {results && <ScoreBadge withRating={false} />}
         {list.map(c => (
           <Tooltip key={c.id} title={c.check?.title} content={c.check ? `${c.check.detail}. ${STATE_WORD[c.check.state]}.` : undefined} side="top">
             <button type="button" className={`cs-chip is-${c.check?.state ?? "idle"}`}

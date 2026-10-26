@@ -22,7 +22,7 @@ measurements* in the [README](../README.md)).
 | Area | What it is |
 |---|---|
 | **Inspector** (left) | The design as five numbered steps: 1 Box, 2 Digital, 3 Midrange, 4 Tweeter, 5 Check & export. Work from top to bottom. |
-| **Workspace** (centre) | One of eight views, chosen by the tabs or the keys 1–8. |
+| **Workspace** (centre) | One of nine views, chosen by the tabs or the keys 1–9. |
 | **Signal chain** (bottom dock) | The live block diagram from the MiniDSP to the three drivers. Click a part to edit it. |
 | **Status bar** | The key numbers as coloured chips, the probe frequency and the engine time. |
 
@@ -122,6 +122,23 @@ it.
 
 Amber means *look at it*, red means *the design has a real problem*. The bands and the tweeter resonance come
 from the profile's `limits`, so another system can have other targets.
+
+## The verdict: is it good, and why?
+
+The **Verdict** view (key 2, or click the score in the status bar) grades the design 0–100 from 14 weighted
+criteria in five groups: tonal balance, crossover blend, off axis, safety and build. Pick a criterion to see:
+
+- **Why it matters**: what it measures and how it sounds when it is wrong.
+- **In this design**: the numbers and the frequencies where it happens. For a crossover blend, for example, the
+  phase difference between the drivers, how much they add, and how deep the reverse null would be.
+- **What to change**, with a button that jumps to the control, and a plot that shows the problem.
+
+**Try this** lists small, buildable changes, such as one part one stock value up or down, a polarity flip, the
+woofer gain or the vent length. Each one has been run on your measurements, and only those that raise the score are
+shown. **Apply** makes the change; **Undo** takes it back.
+
+Two numbers rest on assumptions: resistor heat assumes 5 W resistors and 10 W of pink noise, and vent noise
+assumes a 10 W sine. The score is an engineering judgement. The listening test (Task 4) is the real verdict.
 
 ## Comparing designs
 
@@ -225,7 +242,7 @@ made for another profile opens after a warning. Its values will load, but they w
 |---|---|
 | Ctrl+K (⌘K) | Command palette: every action, searchable |
 | ? | Help and all shortcuts |
-| 1–8 | Switch view |
+| 1–9 | Switch view |
 | Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z) | Undo / redo |
 | S | Snapshot |
 | O | Optimise (again to stop) |

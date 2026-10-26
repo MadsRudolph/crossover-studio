@@ -7,6 +7,7 @@ import { useOptimiser } from "../shell/optimiser";
 import { focusControl, openExport } from "../shell/commands";
 import { CHECK_FOCUS } from "./focus";
 import type { SectionCommon } from "./common";
+import { ScoreBadge } from "../../views/ScoreBadge";
 
 const NO_CHECKS: Check[] = [];
 
@@ -20,6 +21,7 @@ export function CheckSection({ open, onOpenChange, status }: SectionCommon) {
   return (
     <Section id="check" step={5} color="var(--accent)" title="Check & export" status={status} open={open} onOpenChange={onOpenChange}
              summary={checks.length ? `${passed} of ${checks.length} checks pass` : undefined}>
+      <div className="insp-verdict"><ScoreBadge /><span>Why good or bad: open the Verdict view</span></div>
       <ul className="insp-checks" aria-label="Design checks">
         {checks.map(c => (
           <li key={c.id} data-focus-id={`check.${c.id}`}>

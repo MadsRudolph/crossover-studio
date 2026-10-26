@@ -12,6 +12,7 @@ import { Viewport3D } from "../viewport3d";
 import { useStore } from "../state/store";
 import { UNIT_IDS } from "../types";
 import { Card, crossoverLines, fmtSigned, judgeBand, snapshotSeries, useProbe, useSize } from "./common";
+import { ScoreBadge } from "./ScoreBadge";
 import { TRACE_META, TRACES, checkCounts, db, levelAt, nearest, readProbe, responseRange, type TraceId } from "./data";
 
 export function SystemView() {
@@ -163,7 +164,6 @@ const SEVERITY = { bad: 0, warn: 1, good: 2 } as const;
 function ChecksCard({ ref }: { ref?: Ref<HTMLElement> }) {
   const checks = useStore(s => s.results!.checks);
   const [showPassing, setShowPassing] = useState(false);
-  const c = checkCounts(checks);
   // what needs attention first; the passing ones fold into one line unless nothing else is listed
   const sorted = [...checks].sort((a, b) => SEVERITY[a.state] - SEVERITY[b.state]);
   const open = sorted.filter(k => k.state !== "good");
@@ -174,7 +174,7 @@ function ChecksCard({ ref }: { ref?: Ref<HTMLElement> }) {
     <section className="vw-card" ref={ref} aria-labelledby="vw-checks-title">
       <header className="vw-card-head">
         <h2 className="vw-card-title" id="vw-checks-title">Checks</h2>
-        <div className="vw-card-actions"><span className="vw-muted mono">{c.good}/{checks.length} OK</span></div>
+        <div className="vw-card-actions"><ScoreBadge /></div>
       </header>
       <ul className="vw-checks">
         {shown.map(k => (

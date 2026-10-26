@@ -1,5 +1,5 @@
 // Global keyboard shortcuts (docs/DESIGN.md): Ctrl/Cmd+K palette, Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z) undo/redo,
-// 1-8 views, S snapshot, O optimise, E export, P probe, X x-ray, ? help.
+// 1-9 views, S snapshot, O optimise, E export, P probe, X x-ray, ? help.
 // Single-key shortcuts stand down while the person types in a field or a dialog/menu is open.
 import { useEffect } from "react";
 import { useStore } from "../../state/store";
@@ -25,7 +25,7 @@ export const SHORTCUTS: { group: string; items: ShortcutDoc[] }[] = [
     { keys: "E", what: "Export" },
   ] },
   { group: "Views", items: [
-    { keys: "1–8", what: "Switch view (System, Response, Phase, …)" },
+    { keys: "1–9", what: "Switch view (System, Verdict, Response, …)" },
     { keys: "P", what: "Type a probe frequency" },
     { keys: "X", what: "X-ray the 3D model" },
   ] },

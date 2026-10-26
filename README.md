@@ -49,7 +49,7 @@ it to learn the workflow before you import your own data.
 5. **Check & export:** click any amber or red check to jump to the control that fixes it. You can also press
    **O** to let the optimiser search the basket values for you.
 
-Press **Ctrl+K** for the command palette. Keys **1–8** switch views, **S** takes a snapshot to compare against,
+Press **Ctrl+K** for the command palette. Keys **1–9** switch views, **S** takes a snapshot to compare against,
 and **E** opens the export.
 
 ## Importing your group's measurements
