@@ -1,0 +1,833 @@
+/* Workspace views. Only design tokens from docs/DESIGN.md (and the shell's extras in tokens.css). */
+
+/* ------------------------------------------------------------------ frame */
+.vw-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 14px 16px 12px;
+  gap: 10px;
+  /* the plots size themselves to the space left; below their minimum the view scrolls instead of clipping */
+  overflow-y: auto;
+}
+.vw-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.vw-head-text {
+  flex: 1;
+  min-width: 0;
+}
+.vw-title {
+  margin: 0;
+  font-family: var(--font-label);
+  font-weight: 700;
+  font-size: var(--fs-13);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.vw-lede {
+  margin: 4px 0 0;
+  max-width: 110ch;
+  font-size: var(--fs-13);
+  line-height: 1.45;
+  color: var(--text-2);
+}
+.vw-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+.vw-plots {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 220px;
+  min-width: 0;
+}
+.vw-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  min-height: 0;
+}
+.vw-plot-title {
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: var(--fs-11);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.vw-muted {
+  color: var(--text-3);
+  font-size: var(--fs-12);
+}
+.vw-foot {
+  margin: 10px 0 0;
+  font-size: var(--fs-11);
+  line-height: 1.45;
+  color: var(--text-3);
+}
+.vw-kbd {
+  margin-left: 4px;
+  padding: 0 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  color: var(--text-3);
+}
+.is-good { color: var(--good); }
+.is-warn { color: var(--warn); }
+.is-bad { color: var(--bad); }
+
+/* ------------------------------------------------------------------ read-out strip */
+.vw-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 6px;
+}
+.vw-strip-note {
+  align-self: center;
+  margin-left: 6px;
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+.vw-ro {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 84px;
+  padding: 5px 10px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--surface-1);
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+.vw-ro.is-action {
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.vw-ro.is-action:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-hover);
+}
+.vw-ro-label {
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: var(--fs-11);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.vw-ro-value {
+  font-size: var(--fs-15);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  white-space: nowrap;
+}
+.vw-ro-unit {
+  margin-left: 4px;
+  font-size: var(--fs-11);
+  color: var(--text-3);
+}
+.vw-ro.is-good { box-shadow: inset 2px 0 0 var(--good); }
+.vw-ro.is-warn { box-shadow: inset 2px 0 0 var(--warn); }
+.vw-ro.is-bad { box-shadow: inset 2px 0 0 var(--bad); }
+.vw-ro.is-good .vw-ro-value { color: var(--good); }
+.vw-ro.is-warn .vw-ro-value { color: var(--warn); }
+.vw-ro.is-bad .vw-ro-value { color: var(--bad); }
+
+/* ------------------------------------------------------------------ cards */
+.vw-card {
+  display: block;
+  padding: 12px 14px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.vw-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.vw-card-title {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: var(--fs-12);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.vw-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ chips */
+.vw-chip {
+  --chip-color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-1);
+  box-shadow: inset 2px 0 0 var(--chip-color);
+  color: var(--text-2);
+  font: inherit;
+  font-size: var(--fs-12);
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.vw-chip:hover {
+  border-color: var(--chip-color);
+  color: var(--text);
+}
+.vw-chip .mono { color: var(--text); }
+.vw-filter-strip { gap: 14px; }
+.vw-fgroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+.vw-fgroup > .vw-ro-label { margin-right: 2px; }
+
+/* ------------------------------------------------------------------ system view */
+.vw-system {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-rows: minmax(0, 1fr) minmax(170px, 30%);
+  grid-template-areas: "stage side" "plot side";
+  gap: 10px;
+  height: 100%;
+  padding: 10px 12px 10px 10px;
+}
+.vw-sys-stage {
+  grid-area: stage;
+  min-height: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.vw-sys-plot {
+  grid-area: plot;
+  min-height: 0;
+  padding: 6px 6px 6px 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  overflow: hidden;
+}
+.vw-sys-side {
+  grid-area: side;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+@media (max-width: 1180px) {
+  .vw-system {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+}
+
+.vw-probe-freq {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: -2px 0 8px;
+}
+.vw-probe-big {
+  font-size: var(--fs-32);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.vw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 10px 0 12px;
+}
+.vw-qchip {
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--text-2);
+  font: inherit;
+  font-size: var(--fs-11);
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+}
+.vw-qchip:hover { color: var(--text); border-color: var(--line-strong); }
+.vw-qchip.is-on {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.vw-qchip-k {
+  font-family: var(--font-label);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.vw-reading {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border-left: 2px solid var(--line-strong);
+  border-radius: 0 var(--r) var(--r) 0;
+  background: var(--surface-3);
+  font-size: var(--fs-13);
+  line-height: 1.4;
+  color: var(--text-2);
+  transition: border-color var(--t) var(--ease);
+}
+.vw-reading strong {
+  font-weight: 600;
+  color: var(--text);
+}
+.vw-reading.is-good { border-left-color: var(--good); }
+.vw-reading.is-warn { border-left-color: var(--warn); }
+.vw-reading.is-bad { border-left-color: var(--bad); }
+
+.vw-units {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.vw-unit {
+  --unit: var(--text);
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr) 58px 34px 40px;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+}
+.vw-unit-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: var(--fs-13);
+  text-align: left;
+  cursor: pointer;
+}
+.vw-unit-name:hover:not(:disabled) { color: var(--text); }
+.vw-unit-name:disabled { cursor: default; }
+.vw-unit.is-sum .vw-unit-name { color: var(--text); font-weight: 600; }
+.vw-swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 2px;
+  background: var(--unit);
+  vertical-align: 1px;
+}
+.vw-unit-name .vw-swatch { margin-right: 0; }
+.vw-bar {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.vw-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--unit);
+  opacity: 0.85;
+  transition: width var(--t) var(--ease);
+}
+.vw-bar-zero {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--text-3);
+  z-index: 1;
+}
+.vw-unit-db,
+.vw-unit-ph {
+  font-size: var(--fs-12);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.vw-unit-db small {
+  font-size: var(--fs-11);
+  color: var(--text-3);
+}
+.vw-unit-ph { color: var(--text-2); }
+
+/* the side column fades out at the bottom while there is more below */
+.vw-sys-side.has-more {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent);
+}
+.vw-sys-side.has-more:has(.vw-sys-jump) {
+  mask-image: none;
+}
+.vw-sys-jump {
+  position: sticky;
+  bottom: 0;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: auto;
+  padding: 6px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface-2);
+  box-shadow: var(--shadow-2);
+  color: var(--text);
+  font: 500 var(--fs-12) var(--font-ui);
+  cursor: pointer;
+  z-index: 1;
+}
+.vw-sys-jump:hover { background: var(--surface-3); }
+.vw-checks-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 4px 0 0 26px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  font: 500 var(--fs-12) var(--font-ui);
+  cursor: pointer;
+}
+.vw-checks-more:hover { background: var(--surface-hover); color: var(--text); }
+.vw-checks-more .is-flipped { transform: rotate(180deg); }
+.vw-checks {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.vw-check {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) 14px;
+  align-items: start;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: var(--r);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.vw-check > .cs-dot { margin-top: 5px; }
+.vw-check:hover { background: var(--surface-hover); }
+.vw-check-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.vw-check-title {
+  font-size: var(--fs-13);
+  color: var(--text);
+}
+.vw-check-detail {
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+.vw-check.is-bad .vw-check-detail { color: var(--bad); }
+.vw-check.is-warn .vw-check-detail { color: var(--warn); }
+.vw-check-go {
+  margin-top: 3px;
+  color: var(--text-3);
+  opacity: 0;
+  transition: opacity var(--t-fast) var(--ease);
+}
+.vw-check:hover .vw-check-go,
+.vw-check:focus-visible .vw-check-go { opacity: 1; }
+
+/* ------------------------------------------------------------------ phase view */
+.vw-dials { gap: 8px; }
+.vw-dialcard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 240px;
+  padding: 8px 14px 8px 10px;
+  box-shadow: none;
+}
+.vw-dialcard.is-action {
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease);
+}
+.vw-dialcard.is-action:hover { border-color: var(--line-strong); }
+.vw-dialcard-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.vw-dialcard-value {
+  font-size: var(--fs-18);
+  color: var(--text);
+}
+.vw-dialcard-value.is-good { color: var(--good); }
+.vw-dialcard-value.is-warn { color: var(--warn); }
+.vw-dialcard-value.is-bad { color: var(--bad); }
+
+/* ------------------------------------------------------------------ box view */
+.vw-box {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+.vw-box-main { min-width: 0; min-height: 0; }
+.vw-box-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+}
+.vw-kv {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 5px 12px;
+  margin: 0;
+  font-size: var(--fs-13);
+}
+.vw-kv dt { color: var(--text-2); }
+.vw-kv dd {
+  margin: 0;
+  text-align: right;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.vw-kv sub { font-size: 0.72em; }
+.vw-quality {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.vw-notes {
+  margin: 10px 0 0;
+  padding-left: 16px;
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  color: var(--text-2);
+}
+.vw-notes li + li { margin-top: 4px; }
+.vw-mini-table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  font-size: var(--fs-12);
+}
+.vw-mini-table th {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: var(--fs-11);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: right;
+  color: var(--text-3);
+}
+.vw-mini-table th:first-child,
+.vw-mini-table td:first-child { text-align: left; }
+.vw-mini-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  color: var(--text);
+}
+.vw-mini-table tr:last-child td { border-bottom: 0; }
+
+/* ------------------------------------------------------------------ directivity */
+.vw-dir {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+.vw-dir-side {
+  min-height: 0;
+  overflow-y: auto;
+}
+.vw-drop {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 4px;
+}
+.vw-drop-even {
+  fill: var(--good);
+  fill-opacity: 0.07;
+}
+.vw-drop-grid {
+  stroke: var(--grid-strong);
+  stroke-width: 1;
+}
+.vw-drop-zero {
+  stroke: var(--text-3);
+  stroke-width: 1;
+}
+.vw-drop-tick,
+.vw-drop-val,
+.vw-drop-ang {
+  fill: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-variant-numeric: tabular-nums;
+}
+.vw-drop-val {
+  fill: var(--text-2);
+}
+.vw-drop-name {
+  fill: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 10px;
+}
+.vw-drop-bar {
+  fill: var(--unit);
+  transition: x var(--t) var(--ease), width var(--t) var(--ease);
+}
+.vw-drop-bar.is-sum {
+  fill: var(--text);
+}
+
+/* ------------------------------------------------------------------ compare */
+.vw-compare {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+.vw-cmp-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+}
+.vw-snaps {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.vw-snap {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 4px 4px 6px;
+  border-radius: var(--r);
+  transition: background var(--t-fast) var(--ease);
+}
+.vw-snap:hover { background: var(--surface-hover); }
+.vw-snap.is-current { grid-template-columns: 20px minmax(0, 1fr) auto; }
+.vw-snap-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--snap);
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+.vw-snap-swatch.is-current {
+  width: 10px;
+  height: 10px;
+  margin-left: 1px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--surface-active);
+}
+.vw-pad { margin: 0; line-height: 1.45; }
+.vw-snap-color {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  cursor: pointer;
+}
+.vw-snap-color:hover { background: var(--surface-active); }
+.vw-snap-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.vw-snap-name {
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-13);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: text;
+}
+.vw-snap-name:disabled { cursor: default; font-weight: 600; }
+.vw-snap-input {
+  width: 100%;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-sm);
+  background: var(--surface-3);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-13);
+  outline: none;
+}
+.vw-snap-meta {
+  overflow: hidden;
+  font-size: var(--fs-11);
+  color: var(--text-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vw-snap-ab {
+  display: flex;
+  gap: 2px;
+}
+.vw-ab {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface-3);
+  color: var(--text-3);
+  font-family: var(--font-label);
+  font-weight: 700;
+  font-size: var(--fs-11);
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+}
+.vw-ab:hover { color: var(--text); border-color: var(--line-strong); }
+.vw-ab.is-on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.vw-snap-tools {
+  display: flex;
+  gap: 0;
+  opacity: 0.35;
+  transition: opacity var(--t-fast) var(--ease);
+}
+.vw-snap:hover .vw-snap-tools,
+.vw-snap:focus-within .vw-snap-tools { opacity: 1; }
+.vw-ab-tag {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin: 0 2px 0 6px;
+  border-radius: 3px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: var(--fs-11);
+  letter-spacing: 0;
+}
+.vw-diff {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-12);
+}
+.vw-diff th,
+.vw-diff td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--line);
+}
+.vw-diff thead th {
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: var(--fs-11);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: right;
+  color: var(--text-3);
+}
+.vw-diff tbody th {
+  font-weight: 400;
+  text-align: left;
+  color: var(--text-2);
+}
+.vw-diff td {
+  text-align: right;
+  color: var(--text);
+  white-space: nowrap;
+}
+.vw-diff td.is-good { color: var(--good); }
+.vw-diff td.is-bad { color: var(--bad); }
+.vw-diff-check td { text-align: right; }
+.vw-diff-check td .cs-dot { display: inline-block; }
+.vw-diff tr:last-child th,
+.vw-diff tr:last-child td { border-bottom: 0; }
+
+@media (max-width: 1280px) {
+  .vw-compare { grid-template-columns: 320px minmax(0, 1fr); }
+  .vw-dir { grid-template-columns: minmax(0, 1fr) 250px; }
+  .vw-box { grid-template-columns: minmax(0, 1fr) 260px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vw-bar-fill, .vw-drop-bar { transition: none; }
+}

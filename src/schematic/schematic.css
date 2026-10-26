@@ -1,0 +1,526 @@
+/* Signal chain. Only design tokens; per-element tone comes in as --sc-tone. */
+
+.sc-root {
+  --sc-bg: var(--surface-1);
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  background: var(--sc-bg);
+}
+.sc-root.sc-empty {
+  align-items: center;
+  justify-content: center;
+}
+.sc-svg {
+  display: block;
+  flex: none;
+  /* auto margins centre it when it fits and, unlike justify-content, never push it past the scroll origin */
+  margin: auto;
+  overflow: visible;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: var(--font-ui);
+  text-rendering: geometricPrecision;
+}
+
+/* ---------------------------------------------------------------- text */
+.sc-svg text {
+  fill: var(--text);
+  font-size: 11px;
+}
+.sc-caps {
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: 10px !important;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.sc-svg .sc-dim-text {
+  fill: var(--text-3);
+}
+.sc-svg .sc-small {
+  font-size: 10px;
+}
+.sc-svg .sc-val {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  fill: var(--text);
+  /* a halo in the background colour keeps values legible where they cross a wire */
+  paint-order: stroke;
+  stroke: var(--sc-bg);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.sc-svg .sc-name {
+  font-family: var(--font-label);
+  font-weight: 700;
+  fill: var(--sc-tone, var(--text-2));
+}
+.sc-svg .sc-tag {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 9.5px;
+  fill: var(--text-3);
+  paint-order: stroke;
+  stroke: var(--sc-bg);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  transition: fill var(--t) var(--ease);
+}
+.sc-root.is-compact .sc-tag {
+  font-size: 9px;
+}
+.sc-svg .sc-tag-unit {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+/* ---------------------------------------------------------------- wires */
+.sc-wire {
+  fill: none;
+  /* butt caps: collinear segments of one conductor meet without brighter overlap dots */
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  transition: stroke-width var(--t) var(--ease), stroke-opacity var(--t) var(--ease);
+}
+.sc-wire.is-gnd {
+  stroke: var(--line-strong);
+  stroke-width: 1.2px;
+}
+.sc-flow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 0.1 17.9;
+  opacity: 0;
+  transition: opacity var(--t) var(--ease), stroke-width var(--t) var(--ease), stroke-opacity var(--t) var(--ease);
+}
+.sc-root.is-animated .sc-flow {
+  opacity: 1;
+  animation: sc-flow var(--sc-flow-dur, 1.2s) linear infinite;
+}
+@keyframes sc-flow {
+  to { stroke-dashoffset: -36; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-root.is-animated .sc-flow {
+    animation: none;
+    opacity: 0;
+  }
+}
+.sc-junction {
+  stroke: none;
+}
+.sc-ground {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 1.3px;
+  stroke-linecap: round;
+}
+
+/* ---------------------------------------------------------------- symbols */
+.sc-sym,
+.sc-lead {
+  fill: none;
+  stroke: var(--text-2);
+  stroke-width: 1.6px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke var(--t-fast) var(--ease);
+}
+.sc-lead {
+  stroke-width: 1.3px;
+}
+.sc-plate {
+  stroke-width: 2.4px;
+  stroke-linecap: butt;
+}
+.sc-body {
+  fill: var(--surface-2);
+}
+.sc-amp,
+.sc-src {
+  fill: var(--surface-2);
+  stroke: var(--text-2);
+  stroke-width: 1.4px;
+  stroke-linejoin: round;
+}
+.sc-src-wave {
+  fill: none;
+  stroke: var(--text-2);
+  stroke-width: 1.3px;
+  stroke-linecap: round;
+}
+.sc-spk {
+  fill: var(--surface-2);
+  stroke: var(--sc-tone, var(--text-2));
+  stroke-width: 1.6px;
+  stroke-linejoin: round;
+  transition: fill var(--t) var(--ease);
+}
+.sc-board {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 1px;
+  stroke-dasharray: 5 4;
+}
+.sc-svg .sc-legend {
+  fill: var(--text-3);
+  font-size: 10px;
+  paint-order: stroke;
+  stroke: var(--sc-bg);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+  dominant-baseline: middle;
+}
+.sc-svg .sc-legend-probe {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------- MiniDSP */
+.sc-dsp-body {
+  fill: var(--surface-2) !important;
+  stroke: var(--line-strong) !important;
+  stroke-width: 1px;
+}
+.sc-svg .sc-dsp-title {
+  fill: var(--text-2);
+  font-size: 11px !important;
+  letter-spacing: 0.14em;
+}
+.sc-svg .sc-dsp-out {
+  fill: var(--text-2);
+}
+.sc-dsp-split {
+  fill: none;
+  stroke: var(--text-3);
+  stroke-width: 1.1px;
+}
+.sc-port {
+  fill: var(--surface-2);
+  stroke: var(--text-2);
+  stroke-width: 1.2px;
+}
+.sc-glyph-well {
+  fill: var(--surface-3);
+  stroke: var(--line);
+  stroke-width: 1px;
+}
+.sc-glyph {
+  fill: none;
+  stroke: var(--woof);
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+}
+
+/* ---------------------------------------------------------------- interactive items */
+.sc-item {
+  cursor: pointer;
+  outline: none;
+}
+.sc-hit {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 1px;
+  transition: fill var(--t-fast) var(--ease), stroke var(--t-fast) var(--ease);
+}
+.sc-item:hover > .sc-hit {
+  fill: var(--surface-hover);
+}
+.sc-item:hover .sc-sym,
+.sc-item:hover .sc-lead {
+  stroke: var(--sc-tone, var(--accent));
+}
+.sc-item:focus-visible > .sc-hit {
+  stroke: var(--focus);
+  stroke-width: 1.5px;
+}
+.sc-item.is-selected > .sc-hit {
+  fill: var(--accent-soft);
+  stroke: var(--accent-line);
+}
+.sc-item.is-selected .sc-sym,
+.sc-item.is-selected .sc-lead {
+  stroke: var(--accent);
+}
+.sc-dsp:hover > .sc-dsp-body {
+  stroke: var(--text-3) !important;
+}
+.sc-dsp.is-selected > .sc-dsp-body {
+  stroke: var(--accent-line) !important;
+}
+.sc-dsp:focus-visible > .sc-dsp-body {
+  stroke: var(--focus) !important;
+  stroke-width: 1.5px;
+}
+.sc-part.is-optional .sc-name {
+  font-style: normal;
+}
+.sc-driver:hover .sc-spk,
+.sc-driver.is-selected .sc-spk {
+  fill: color-mix(in srgb, var(--sc-tone) 22%, var(--surface-2));
+}
+.sc-svg .sc-driver-name {
+  fill: var(--sc-tone);
+  font-size: 11px !important;
+}
+.sc-svg .sc-box-text {
+  fill: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+.sc-boxlabel > .sc-box-pill {
+  fill: var(--sc-bg);
+}
+.sc-boxlabel:hover > .sc-box-pill {
+  fill: var(--surface-2);
+  stroke: var(--line);
+}
+.sc-boxlabel:hover .sc-box-text {
+  fill: var(--text-2);
+}
+
+/* polarity switch */
+.sc-pol-dot {
+  fill: var(--surface-2) !important;
+  stroke: var(--line-strong) !important;
+}
+.sc-pol-glyph {
+  fill: none;
+  stroke: var(--text-2);
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+}
+.sc-pol:hover .sc-pol-dot {
+  stroke: var(--sc-tone) !important;
+}
+.sc-pol.is-inverted .sc-pol-dot {
+  fill: color-mix(in srgb, var(--warn) 18%, var(--surface-2)) !important;
+  stroke: var(--warn) !important;
+}
+.sc-pol.is-inverted .sc-pol-glyph {
+  stroke: var(--warn);
+}
+.sc-pol:focus-visible .sc-pol-dot {
+  stroke: var(--focus) !important;
+  stroke-width: 1.5px;
+}
+
+/* branch tools */
+.sc-svg .sc-branch-name {
+  fill: var(--sc-tone);
+}
+.sc-seg-box {
+  fill: var(--surface-3) !important;
+  stroke: var(--line) !important;
+}
+.sc-svg .sc-seg-text,
+.sc-svg .sc-chip-text {
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: 10px;
+  fill: var(--text-3);
+  pointer-events: none;
+}
+.sc-seg:hover .sc-seg-box {
+  stroke: var(--line-strong) !important;
+}
+.sc-seg:hover .sc-seg-text {
+  fill: var(--text-2);
+}
+.sc-seg.is-on .sc-seg-box {
+  fill: color-mix(in srgb, var(--sc-tone) 20%, var(--surface-2)) !important;
+  stroke: var(--sc-tone) !important;
+}
+.sc-svg .sc-seg.is-on .sc-seg-text {
+  fill: var(--text);
+}
+.sc-chip-box {
+  fill: transparent !important;
+  stroke: var(--line-strong) !important;
+  stroke-dasharray: 3 2;
+}
+.sc-chip:hover .sc-chip-box {
+  fill: var(--surface-hover) !important;
+  stroke: var(--sc-tone) !important;
+  stroke-dasharray: none;
+}
+.sc-chip:hover .sc-chip-text {
+  fill: var(--text);
+}
+.sc-seg:focus-visible .sc-seg-box,
+.sc-chip:focus-visible .sc-chip-box {
+  stroke: var(--focus) !important;
+  stroke-width: 1.5px;
+  stroke-dasharray: none;
+}
+
+/* ---------------------------------------------------------------- hover card */
+.sc-card {
+  position: fixed;
+  z-index: 950;
+  min-width: 190px;
+  max-width: 280px;
+  padding: 10px 12px 9px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-2);
+  font-size: var(--fs-12);
+  color: var(--text-2);
+  pointer-events: none;
+  animation: sc-card-in var(--t-fast) var(--ease);
+}
+@keyframes sc-card-in {
+  from { opacity: 0; transform: translateY(3px); }
+}
+.sc-card-head,
+.sc-ed-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sc-swatch {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--sc-tone, var(--text-2));
+}
+.sc-card-title,
+.sc-ed-title {
+  font-family: var(--font-label);
+  font-weight: 700;
+  font-size: var(--fs-12);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.sc-card-sub,
+.sc-ed-sub {
+  color: var(--text-3);
+  font-size: var(--fs-12);
+  margin-top: 2px;
+}
+.sc-card-value {
+  margin-top: 8px;
+  font-size: var(--fs-15);
+  color: var(--text);
+}
+.sc-card-hint {
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+  color: var(--text-3);
+  font-size: var(--fs-11);
+}
+.sc-facts {
+  margin: 8px 0 0;
+  display: grid;
+  gap: 4px;
+}
+.sc-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.sc-row dt {
+  color: var(--text-3);
+}
+.sc-row dd {
+  margin: 0;
+  color: var(--text);
+  white-space: nowrap;
+}
+.sc-dim {
+  color: var(--text-3);
+}
+
+/* ---------------------------------------------------------------- editor popover */
+.sc-pop {
+  overflow: visible;
+}
+.sc-ed {
+  width: 280px;
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+  font-size: var(--fs-13);
+}
+.sc-ed-head .sc-swatch {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+.sc-ed-head {
+  align-items: flex-start;
+}
+.sc-ed-field {
+  display: grid;
+  gap: 6px;
+}
+.sc-ed-label {
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: var(--fs-11);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.sc-ed-unit {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.sc-ed-note {
+  color: var(--text-3);
+  font-size: var(--fs-12);
+}
+.sc-ed .sc-facts {
+  margin: 0;
+  padding: 8px 10px;
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-12);
+}
+.sc-ed-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 -4px -4px;
+}
+
+/* ---------------------------------------------------------------- compact density (bottom dock) */
+.sc-root.is-compact .sc-svg text {
+  font-size: 10px;
+}
+.sc-root.is-compact .sc-caps {
+  font-size: 9px !important;
+}
+.sc-root.is-compact .sc-svg .sc-val {
+  font-size: 10px;
+  stroke-width: 2.5px;
+}
+.sc-root.is-compact .sc-svg .sc-driver-name,
+.sc-root.is-compact .sc-svg .sc-dsp-title {
+  font-size: 10px !important;
+}
+.sc-root.is-compact .sc-svg .sc-seg-text,
+.sc-root.is-compact .sc-svg .sc-chip-text,
+.sc-root.is-compact .sc-svg .sc-legend,
+.sc-root.is-compact .sc-svg .sc-box-text {
+  font-size: 9px;
+}
+.sc-root.is-compact .sc-sym {
+  stroke-width: 1.4px;
+}
+.sc-root.is-compact .sc-plate {
+  stroke-width: 2px;
+}
+.sc-svg .sc-dsp-kind {
+  fill: var(--text-2);
+}

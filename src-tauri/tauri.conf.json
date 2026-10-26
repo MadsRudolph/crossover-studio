@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "crossover-studio",
+  "productName": "Crossover Studio",
   "version": "0.1.0",
   "identifier": "dev.madsrudolph.crossoverstudio",
   "build": {
@@ -12,9 +12,14 @@
   "app": {
     "windows": [
       {
-        "title": "crossover-studio",
-        "width": 800,
-        "height": 600
+        "title": "Crossover Studio",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1100,
+        "minHeight": 700,
+        "center": true,
+        "resizable": true,
+        "backgroundColor": "#0c0f12"
       }
     ],
     "security": {

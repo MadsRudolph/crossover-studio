@@ -1,0 +1,257 @@
+/* 3D viewport. Only design tokens from docs/DESIGN.md; the canvas is transparent over this gradient. */
+
+.v3d {
+  container: v3d / inline-size;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: inherit;
+  outline: none;
+  background:
+    radial-gradient(120% 90% at 50% 38%, color-mix(in srgb, var(--surface-2) 70%, transparent) 0%, transparent 62%),
+    radial-gradient(80% 60% at 50% 100%, color-mix(in srgb, var(--surface-1) 90%, transparent) 0%, transparent 70%),
+    var(--bg);
+  font-family: "Barlow", system-ui, sans-serif;
+  color: var(--text);
+}
+.v3d:focus-visible { box-shadow: inset 0 0 0 2px var(--focus); }
+.v3d-stage, .v3d-stage > div { position: absolute; inset: 0; }
+.v3d-stage canvas { display: block; touch-action: none; }
+
+/* ---------------------------------------------------------------- toolbar */
+.v3d-toolbar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  pointer-events: none;
+  z-index: 40;
+}
+.v3d-tb-group {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  pointer-events: auto;
+  background: color-mix(in srgb, var(--surface-2) 82%, transparent);
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-1);
+}
+.v3d-tb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  font: 600 11px/1 "Barlow Semi Condensed", "Barlow", sans-serif;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.v3d-tb-btn.is-text { min-width: 40px; justify-content: center; padding: 0 8px; }
+.v3d-tb-btn.is-icon { width: 28px; padding: 0; justify-content: center; }
+.v3d-tb-btn:hover:not(:disabled) { background: var(--surface-3); color: var(--text); }
+.v3d-tb-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.v3d-tb-btn[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+}
+.v3d-tb-btn:disabled { opacity: 0.45; cursor: default; }
+.v3d-tb-btn svg { flex: none; }
+
+/* ---------------------------------------------------------------- HUD */
+.v3d-hud {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  pointer-events: none;
+  z-index: 40;
+}
+.v3d-hud-probe, .v3d-hud-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--surface-2) 82%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  font-size: 12px;
+  color: var(--text-2);
+}
+.v3d-hud-k {
+  font: 600 10.5px/1 "Barlow Semi Condensed", "Barlow", sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+/* a sentence with a unit in it: kept in normal case so "Hz" stays "Hz" */
+.v3d-hud-note {
+  font: 400 11.5px/1 var(--font-ui);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.v3d-hud-v, .v3d-hud-chip.is-mono {
+  font: 500 13px/1 "JetBrains Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+.v3d-hint {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  font-size: 11px;
+  color: var(--text-3);
+  pointer-events: none;
+  z-index: 40;
+  opacity: 0.85;
+}
+/* the HUD chips need the bottom edge more than the mouse reminder does on a narrow stage */
+@container v3d (max-width: 760px) { .v3d-hint { display: none; } }
+.v3d-hud { right: 12px; }
+
+/* ---------------------------------------------------------------- callouts (drei Html) */
+.v3d-callout {
+  position: relative;
+  transform: translateY(-50%);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.v3d-callout.is-left { transform: translate(-100%, -50%); }
+.v3d-label {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 9px 5px 8px;
+  border: 1px solid color-mix(in srgb, var(--c) 45%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-2) 86%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-1);
+  color: var(--text);
+  cursor: pointer;
+  font: 600 11px/1 "Barlow Semi Condensed", "Barlow", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: border-color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease), opacity var(--t) var(--ease);
+}
+.v3d-label:hover, .v3d-label.is-active {
+  border-color: var(--c);
+  background: color-mix(in srgb, var(--c) 14%, var(--surface-2));
+}
+.v3d-label:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.v3d-label.is-quiet { opacity: 0.6; }
+.v3d-label-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 22%, transparent), 0 0 10px color-mix(in srgb, var(--c) 70%, transparent);
+}
+.v3d-label-name { color: var(--text-2); }
+.v3d-label-val {
+  font: 500 12px/1 "JetBrains Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+}
+.v3d-label-val small { margin-left: 3px; font-size: 10px; color: var(--text-3); }
+
+.v3d-tip {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 200px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-2);
+  font-size: 12px;
+  color: var(--text);
+  pointer-events: none;
+  animation: v3d-pop var(--t) var(--ease);
+}
+.v3d-callout.is-left .v3d-tip { left: auto; right: 0; }
+.v3d-tip-title { font-weight: 600; margin-bottom: 4px; }
+.v3d-tip-row {
+  display: flex;
+  gap: 12px;
+  color: var(--text-2);
+  font: 400 11.5px/1.5 "JetBrains Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.v3d-tip-row:first-of-type { font-family: "Barlow", sans-serif; text-transform: capitalize; }
+@keyframes v3d-pop { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+
+/* ---------------------------------------------------------------- empty + fallback */
+.v3d-empty, .v3d-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  padding: 24px;
+}
+.v3d-empty { color: var(--text-3); }
+.v3d-empty-title { font: 600 15px/1.2 "Barlow", sans-serif; color: var(--text); }
+.v3d-empty-text { max-width: 340px; font-size: 13px; line-height: 1.5; color: var(--text-2); }
+
+.v3d-fallback { position: absolute; inset: 0; padding: 56px 24px 64px; gap: 18px; }
+.v3d-elevation { flex: 1; min-height: 0; width: 100%; max-width: 520px; overflow: visible; }
+.v3d-el-floor { stroke: var(--line-strong); stroke-width: 0.002; }
+.v3d-el-cab { fill: var(--surface-3); stroke: var(--line-strong); stroke-width: 0.0015; }
+.v3d-el-cab.is-top { fill: var(--text-2); }
+.v3d-el-vent { fill: var(--bg); stroke: var(--line-strong); stroke-width: 0.002; }
+.v3d-el-vent.is-plugged { fill: var(--surface-2); stroke-dasharray: 0.006 0.004; }
+.v3d-el-frame { fill: var(--surface-1); stroke: var(--line-strong); stroke-width: 0.0015; }
+.v3d-el-cone { fill: var(--bg); }
+.v3d-el-glow { fill: none; stroke: var(--c); stroke-width: 0.004; filter: drop-shadow(0 0 0.006px var(--c)); }
+.v3d-fallback-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 560px;
+  padding: 12px 14px;
+  text-align: left;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  color: var(--text-2);
+}
+.v3d-fallback-card > svg { flex: none; color: var(--warn); }
+.v3d-fallback-title { font-weight: 600; font-size: 13px; color: var(--text); }
+.v3d-fallback-text { font-size: 12px; line-height: 1.45; }
+
+@media (prefers-reduced-motion: reduce) {
+  .v3d-tb-btn, .v3d-label { transition: none; }
+  .v3d-tip { animation: none; }
+}
+
+/* label overlay: each pin is moved by the projector in Labels.tsx */
+.v3d-labels { position: absolute; inset: 0; pointer-events: none; z-index: 20; overflow: hidden; }
+.v3d-label-pin { position: absolute; left: 0; top: 0; will-change: transform; }

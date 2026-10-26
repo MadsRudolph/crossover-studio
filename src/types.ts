@@ -175,7 +175,10 @@ export interface AngleResult {
 
 export interface Metrics {
   on: { spread: number; rms: number; level: number };
+  /** Off-axis level statistics at `offAngle` (30° when measured, else the first off-axis angle). */
   off30?: { spread: number; rms: number; level: number };
+  /** The angle (degrees, as a key of Results.angles) that off30 describes. */
+  offAngle?: string;
   x_wm: number | null;
   x_mt: number | null;
   Zamp2_min: number;

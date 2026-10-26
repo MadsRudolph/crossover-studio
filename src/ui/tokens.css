@@ -1,0 +1,144 @@
+/* Crossover Studio design tokens (docs/DESIGN.md). Dark is the default; [data-theme="light"] overrides.
+   The shell resolves "system" to dark/light from prefers-color-scheme and writes data-theme on <html>,
+   so every rule below only ever needs the two explicit themes. Use these names, never literal colours. */
+
+:root {
+  color-scheme: dark;
+
+  /* surfaces: graphite, each step a little lighter; wells (inputs) sink below the panel */
+  --bg: #0c0f12;
+  --surface-1: #13171b;
+  --surface-2: #1a1f24;
+  --surface-3: #0f1316;
+  --surface-hover: rgba(255, 255, 255, 0.045);
+  --surface-active: rgba(255, 255, 255, 0.075);
+  --line: #232a31;
+  --line-strong: #323b44;
+  /* face of slider thumbs and switch knobs */
+  --knob: #e7ebef;
+
+  /* text */
+  --text: #e7ebef;
+  --text-2: #a4aeb8;
+  /* hints, ticks and captions: 4.6:1 or better on the panels, also at 10-11 px */
+  --text-3: #8a949e;
+
+  /* one warm accent for action, selection and the probe: a raspberry red, kept well away from the
+     driver hues (the midrange orange above all) so the probe line never reads as a curve */
+  --accent: #f25c88;
+  --accent-hover: #f7769b;
+  --accent-text: #1c0c05;
+  --accent-soft: rgba(242, 92, 136, 0.14);
+  --accent-line: rgba(242, 92, 136, 0.45);
+  --focus: #f7789d;
+
+  /* drivers: fixed meaning in every plot, wire, glow and badge */
+  --woof: #6ea6ff;
+  --mid: #f3ab3c;
+  --tw: #4dd38f;
+  --sum: var(--text);
+  --ref: #8a929c;
+
+  /* snapshots (drawn dashed): hues clear of the drivers and the accent, 6:1 or better on --surface-2 */
+  --snap-1: #a78bfa;
+  --snap-2: #7fb8b2;
+  --snap-3: #b9bd63;
+  --snap-4: #d98ae8;
+  --snap-5: #c99d9d;
+  --snap-6: #8f94f2;
+  --snap-7: #b4bfd4;
+
+  /* state */
+  --good: #56cf8a;
+  --warn: #e9c54b;
+  --bad: #f06a5f;
+
+  /* plots */
+  --grid: rgba(255, 255, 255, 0.055);
+  --grid-strong: rgba(255, 255, 255, 0.12);
+  --band: rgba(231, 235, 239, 0.07);
+
+  /* overlay behind dialogs and the palette */
+  --scrim: rgba(4, 6, 8, 0.62);
+
+  /* shape, depth, motion */
+  --r-sm: 4px;
+  --r: 8px;
+  --r-lg: 12px;
+  --shadow-1: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.22);
+  --shadow-2: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 12px 32px rgba(0, 0, 0, 0.5), 0 4px 10px rgba(0, 0, 0, 0.35);
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t-fast: 120ms;
+  --t: 220ms;
+
+  /* type */
+  --font-ui: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-label: "Barlow Semi Condensed", "Barlow", "Arial Narrow", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Menlo, monospace;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-15: 15px;
+  --fs-18: 18px;
+  --fs-24: 24px;
+  --fs-32: 32px;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #e9ecef;
+  --surface-1: #f6f7f8;
+  --surface-2: #ffffff;
+  --surface-3: #eceff2;
+  --surface-hover: rgba(15, 25, 35, 0.045);
+  --surface-active: rgba(15, 25, 35, 0.08);
+  --line: #d8dde2;
+  --line-strong: #c2c9d0;
+  --knob: #ffffff;
+
+  --text: #141a1f;
+  --text-2: #4a5560;
+  --text-3: #66717c;
+
+  --accent: #b8325a;
+  --accent-hover: #a2284d;
+  --accent-text: #ffffff;
+  --accent-soft: rgba(184, 50, 90, 0.1);
+  --accent-line: rgba(184, 50, 90, 0.4);
+  --focus: #c8436b;
+
+  --woof: #2b63c6;
+  --mid: #c87406;
+  --tw: #13945a;
+  --ref: #858c96;
+
+  --snap-1: #6a45d6;
+  --snap-2: #3d7c76;
+  --snap-3: #6b6f1c;
+  --snap-4: #9a3cb0;
+  --snap-5: #8a5a5a;
+  --snap-6: #474fb5;
+  --snap-7: #5a6782;
+
+  --good: #1f9358;
+  /* used as text too: 4.9:1 on white */
+  --warn: #8f6b00;
+  --bad: #cf3b30;
+
+  --grid: rgba(20, 26, 31, 0.07);
+  --grid-strong: rgba(20, 26, 31, 0.15);
+  --band: rgba(20, 26, 31, 0.07);
+
+  --scrim: rgba(30, 38, 46, 0.32);
+
+  --shadow-1: 0 1px 2px rgba(20, 30, 40, 0.08), 0 1px 1px rgba(20, 30, 40, 0.04);
+  --shadow-2: 0 0 0 1px rgba(20, 30, 40, 0.06), 0 12px 32px rgba(20, 30, 40, 0.16), 0 3px 8px rgba(20, 30, 40, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-fast: 0ms;
+    --t: 0ms;
+  }
+}

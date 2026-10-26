@@ -1,0 +1,67 @@
+# Desktop installers for Linux and Windows. Push a tag like v0.2.0 (or run it by hand from the Actions tab)
+# and a draft GitHub release appears with the AppImage, .deb, NSIS .exe and .msi attached. Check it, then publish.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-22.04
+            bundles: appimage,deb
+          - platform: windows-latest
+            bundles: nsis,msi
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: System libraries for Tauri (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Unit tests
+        run: npx vitest run
+        env:
+          XS_LTSPICE_DIR: ${{ runner.temp }}/xs-ltspice
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Build and attach to a draft release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || 'v__VERSION__' }}
+          releaseName: Crossover Studio ${{ github.ref_type == 'tag' && github.ref_name || 'v__VERSION__' }}
+          releaseBody: |
+            Desktop app for designing the 34870 Electroacoustics three-way loudspeaker from your own Lab D/E measurements.
+
+            - **Linux:** the `.AppImage` runs anywhere (`chmod +x`, then double-click); the `.deb` installs on Debian/Ubuntu.
+            - **Windows:** the `-setup.exe` (NSIS) installs per user without admin rights; the `.msi` is for managed machines.
+
+            See the README for importing your group's measurements.
+          releaseDraft: true
+          prerelease: false
+          args: --bundles ${{ matrix.bundles }}

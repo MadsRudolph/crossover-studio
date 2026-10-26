@@ -1,0 +1,307 @@
+/* Chart library styles. Only design tokens from docs/DESIGN.md; fallbacks keep a plot legible when it
+   is rendered outside the app shell (e.g. in a test page without tokens.css). */
+
+.chart-plot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  color: var(--text, #e6e9ea);
+  font-family: var(--font-ui, Barlow, system-ui, sans-serif);
+}
+
+/* ---- header: title, legend, tools */
+.chart-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 4px 0 8px;
+  min-width: 0;
+  flex: none;
+}
+.chart-title {
+  font: 600 11px/1 var(--font-label, "Barlow Semi Condensed", sans-serif);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-2, #a9b1b5);
+  white-space: nowrap;
+}
+.chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+  flex: 1;
+}
+.chart-head__end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+.chart-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px 0 6px;
+  border: 0;
+  border-radius: var(--r-sm, 4px);
+  background: transparent;
+  color: var(--text-2, #a9b1b5);
+  font: 500 12px/1 var(--font-ui, Barlow, system-ui, sans-serif);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--t-fast, 120ms) var(--ease, ease), background-color var(--t-fast, 120ms) var(--ease, ease),
+    opacity var(--t-fast, 120ms) var(--ease, ease);
+}
+.chart-legend__item svg line {
+  stroke: var(--swatch);
+  transition: stroke var(--t-fast, 120ms) var(--ease, ease);
+}
+.chart-legend__item:hover {
+  background: var(--surface-2, #1b2024);
+  color: var(--text, #e6e9ea);
+}
+.chart-legend__item[aria-pressed="false"] {
+  color: var(--text-3, #6d777c);
+}
+.chart-legend__item[aria-pressed="false"] svg line {
+  stroke: var(--line-strong, #343d43);
+}
+.chart-legend__item:focus-visible,
+.chart-tool:focus-visible {
+  outline: 2px solid var(--focus, var(--accent, #f25c88));
+  outline-offset: 1px;
+}
+
+/* ---- tools (reset view, copy image): quiet until the plot is hovered or focused */
+.chart-tools {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--t, 220ms) var(--ease, ease);
+}
+.chart-plot:hover .chart-tools,
+.chart-plot:focus-within .chart-tools {
+  opacity: 1;
+}
+.chart-tools-float {
+  position: absolute;
+  top: 6px;
+  right: 16px;
+  z-index: 3;
+}
+.chart-tool {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 22px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm, 4px);
+  background: transparent;
+  color: var(--text-3, #6d777c);
+  cursor: pointer;
+  transition: color var(--t-fast, 120ms) var(--ease, ease), background-color var(--t-fast, 120ms) var(--ease, ease);
+}
+.chart-tool:hover {
+  color: var(--text, #e6e9ea);
+  background: var(--surface-2, #1b2024);
+  border-color: var(--line, #252c31);
+}
+.chart-tool[data-state="done"] {
+  color: var(--good, #4fc98a);
+}
+.chart-tool[data-state="failed"] {
+  color: var(--bad, #ef6a5e);
+}
+
+/* ---- plotting surface */
+.chart-body {
+  position: relative;
+  flex: none;
+  outline: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: crosshair;
+  border-radius: var(--r-sm, 4px);
+}
+.chart-body:focus-visible {
+  box-shadow: inset 0 0 0 1.5px var(--focus, var(--accent, #f25c88));
+}
+.chart-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* ---- hover readout card */
+.chart-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  min-width: 148px;
+  padding: 7px 9px 6px;
+  border: 1px solid var(--line-strong, #343d43);
+  border-radius: var(--r, 8px);
+  background: color-mix(in srgb, var(--surface-2, #1b2024) 92%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-2, 0 8px 24px rgba(0, 0, 0, 0.35));
+  pointer-events: none;
+  font: 400 11.5px/1.25 var(--font-mono, "JetBrains Mono", ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2, #a9b1b5);
+  opacity: 0;
+  transition: opacity var(--t-fast, 120ms) var(--ease, ease);
+  will-change: transform;
+}
+.chart-card[data-open="true"] {
+  opacity: 1;
+}
+.chart-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 5px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line, #252c31);
+}
+.chart-card__freq {
+  color: var(--text, #e6e9ea);
+  font-weight: 500;
+  font-size: 12px;
+}
+.chart-card__hint {
+  font: 600 9.5px/1 var(--font-label, "Barlow Semi Condensed", sans-serif);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3, #6d777c);
+}
+.chart-card__row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 7px;
+  padding: 1.5px 0;
+}
+.chart-card__row i {
+  width: 10px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--swatch);
+}
+.chart-card__row i[data-dashed] {
+  background: repeating-linear-gradient(90deg, var(--swatch) 0 3px, transparent 3px 5px);
+}
+.chart-card__row span {
+  font-family: var(--font-ui, Barlow, system-ui, sans-serif);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.chart-card__row[data-active] {
+  margin: 0 -5px;
+  padding: 1.5px 5px;
+  border-radius: var(--r-sm, 4px);
+  background: var(--surface-active, rgba(255, 255, 255, 0.075));
+  color: var(--text, #e6e9ea);
+}
+.chart-card__row[data-active] i {
+  height: 3.5px;
+}
+.chart-card__row b {
+  font-weight: 500;
+  color: var(--text, #e6e9ea);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ---- empty state */
+.chart-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  pointer-events: none;
+  color: var(--text-3, #6d777c);
+  font-size: 12.5px;
+}
+.chart-empty > * {
+  pointer-events: auto;
+}
+.chart-empty strong {
+  font: 600 11px/1.2 var(--font-label, "Barlow Semi Condensed", sans-serif);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-2, #a9b1b5);
+}
+
+/* ---- stacked plots */
+.chart-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* ---- sparkline */
+.chart-spark {
+  display: inline-block;
+  vertical-align: middle;
+  overflow: visible;
+}
+
+/* ---- phase dial */
+.chart-dial {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.chart-dial svg {
+  overflow: visible;
+}
+.chart-dial__needle {
+  transition: transform var(--t, 220ms) var(--ease, ease);
+}
+.chart-dial__value {
+  font: 500 11px/1 var(--font-mono, "JetBrains Mono", ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  color: var(--text, #e6e9ea);
+}
+.chart-dial__label {
+  font: 600 9.5px/1 var(--font-label, "Barlow Semi Condensed", sans-serif);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3, #6d777c);
+}
+
+.chart-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-card,
+  .chart-tools,
+  .chart-legend__item,
+  .chart-dial__needle {
+    transition: none;
+  }
+}

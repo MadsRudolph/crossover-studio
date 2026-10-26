@@ -7,8 +7,9 @@
 import json, math, pathlib, sys
 
 HERE = pathlib.Path(__file__).resolve().parents[1]
-LABS = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else
-                    "/home/mads/DTU/5. Semester/Electroacoustics/Labs")
+if len(sys.argv) < 2:
+    sys.exit(__doc__)
+LABS = pathlib.Path(sys.argv[1])
 CSV = HERE / "fixtures" / "csv"
 
 

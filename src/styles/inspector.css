@@ -1,0 +1,203 @@
+/* The inspector: the left column of numbered workflow steps. */
+
+.insp {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  background: var(--surface-1);
+}
+
+.insp-head {
+  flex: none;
+  padding: 12px 14px 12px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 60%, var(--surface-1)), var(--surface-1));
+}
+.insp-head-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.insp-head-name {
+  font-weight: 600;
+  font-size: var(--fs-15);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.insp-units {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.insp-units li {
+  display: grid;
+  grid-template-columns: 8px 62px 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-12);
+  min-width: 0;
+}
+.insp-unit-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+.insp-unit-role {
+  color: var(--text-3);
+  text-transform: capitalize;
+}
+.insp-unit-label {
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.insp-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-padding: 56px 0 16px;
+}
+
+.insp-pos {
+  margin-left: 4px;
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.insp-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: var(--r);
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+}
+.insp-stats:has(> :only-child) {
+  grid-template-columns: 1fr;
+}
+
+.insp-fit {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--fs-12);
+  color: var(--text-2);
+}
+.insp-fit .label-caps {
+  font-size: 10px;
+}
+
+.insp-checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.insp-checks li {
+  position: relative;
+}
+.insp-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: var(--r);
+  background: transparent;
+  text-align: left;
+  transition: background var(--t-fast) var(--ease);
+}
+.insp-check .cs-dot {
+  margin-top: 5px;
+}
+.insp-check:hover {
+  background: var(--surface-hover);
+}
+.insp-check-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.insp-check-title {
+  color: var(--text);
+  font-weight: 500;
+}
+.insp-check-detail {
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+.insp-check.is-warn .insp-check-detail {
+  color: color-mix(in srgb, var(--warn) 75%, var(--text-2));
+}
+.insp-check.is-bad .insp-check-detail {
+  color: color-mix(in srgb, var(--bad) 80%, var(--text-2));
+}
+.insp-check-go {
+  margin-top: 3px;
+  color: var(--text-3);
+  opacity: 0;
+  transform: translateX(-3px);
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.insp-check:hover .insp-check-go,
+.insp-check:focus-visible .insp-check-go {
+  opacity: 1;
+  transform: none;
+}
+
+.insp-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.insp-opt-run {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px 8px 9px 10px;
+  border-radius: var(--r);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 1px var(--accent-line) inset;
+}
+.insp-opt-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--fs-12);
+}
+.insp-opt-row .mono:first-child {
+  flex: 1;
+  color: var(--text);
+}
+.insp-opt-score {
+  color: var(--text-2);
+}
+
+.insp-foot {
+  padding: 14px 16px 22px;
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+.insp-foot b {
+  color: var(--text-2);
+  font-weight: 500;
+}
