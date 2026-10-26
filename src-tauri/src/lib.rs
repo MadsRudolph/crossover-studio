@@ -1,7 +1,7 @@
 // Crossover Studio backend: file IO and parsing only. All acoustics lives in the TypeScript engine.
 // Command signatures are fixed by src/platform/index.ts; keep them in sync.
 
-mod commands;
+pub mod commands;
 pub mod mat;
 pub mod profile;
 pub mod text;
@@ -14,6 +14,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             commands::inspect_file,
+            commands::expand_folders,
             commands::read_series,
             commands::list_profiles,
             commands::load_profile,

@@ -11,7 +11,11 @@ import { FiltersView } from "./FiltersView";
 import { BoxView } from "./BoxView";
 import { DirectivityView } from "./DirectivityView";
 import { CompareView } from "./CompareView";
+import { ListenView } from "./ListenView";
+import { Headphones } from "lucide-react";
 import { VerdictView } from "./VerdictView";
+import { AsBuiltView } from "./AsBuiltView";
+import { FlaskConical } from "lucide-react";
 
 export interface ViewDef { id: ViewId; title: string; icon: LucideIcon; component: ComponentType }
 
@@ -25,4 +29,6 @@ export const VIEWS: ViewDef[] = [
   { id: "box", title: "Box", icon: Box, component: BoxView },
   { id: "directivity", title: "Directivity", icon: Radar, component: DirectivityView },
   { id: "compare", title: "Compare", icon: GitCompareArrows, component: CompareView },
+  { id: "listen", title: "Listen", icon: Headphones, component: ListenView },
+  { id: "built", title: "As built", icon: FlaskConical, component: AsBuiltView },
 ];

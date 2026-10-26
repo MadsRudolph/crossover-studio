@@ -105,6 +105,24 @@ fn read_recent(app_data: &Path) -> Vec<PathBuf> {
         .collect()
 }
 
+/// `fs::canonicalize` on Windows returns verbatim paths ("\\?\C:\Users\..."), which the recent list would
+/// then show and hand back. Drop the prefix where the plain form means the same: drive paths, and shares.
+fn plain(p: PathBuf) -> PathBuf {
+    let s = p.to_string_lossy();
+    if let Some(rest) = s.strip_prefix(r"\\?\UNC\") {
+        return PathBuf::from(format!(r"\\{rest}"));
+    }
+    match s.strip_prefix(r"\\?\") {
+        Some(rest) if rest.as_bytes().get(1) == Some(&b':') && rest.len() < 260 => PathBuf::from(rest),
+        _ => p,
+    }
+}
+
+/// Canonical form of a path for the recent list, without a Windows verbatim prefix.
+fn canonical(p: &Path) -> PathBuf {
+    plain(fs::canonicalize(p).unwrap_or_else(|_| p.to_path_buf()))
+}
+
 fn same_file(a: &Path, b: &Path) -> bool {
     match (fs::canonicalize(a), fs::canonicalize(b)) {
         (Ok(x), Ok(y)) => x == y,
@@ -114,7 +132,7 @@ fn same_file(a: &Path, b: &Path) -> bool {
 
 /// Moves `profile_json` to the front of the recent list. Failures are ignored: the list is a convenience.
 pub fn remember_recent(app_data: &Path, profile_json: &Path) {
-    let path = fs::canonicalize(profile_json).unwrap_or_else(|_| profile_json.to_path_buf());
+    let path = canonical(profile_json);
     let mut list: Vec<PathBuf> = read_recent(app_data).into_iter().filter(|p| !same_file(p, &path)).collect();
     list.insert(0, path);
     list.truncate(RECENT_MAX);
@@ -264,6 +282,31 @@ mod tests {
         fs::write(d.join(PROFILE_FILE), "{ nope").unwrap();
         assert!(load(&d).unwrap_err().contains("not valid JSON"));
         assert!(load(&d.join("missing")).unwrap_err().contains("no profile"));
+    }
+
+    #[test]
+    fn windows_verbatim_paths_are_shown_plain() {
+        assert_eq!(plain(PathBuf::from(r"\\?\C:\Users\Søren\OneDrive\Dokumenter\p\profile.json")), PathBuf::from(r"C:\Users\Søren\OneDrive\Dokumenter\p\profile.json"));
+        assert_eq!(plain(PathBuf::from(r"\\?\UNC\server\share\profile.json")), PathBuf::from(r"\\server\share\profile.json"));
+        assert_eq!(plain(PathBuf::from("/home/x/profile.json")), PathBuf::from("/home/x/profile.json"));
+        // a path too long for the plain form keeps its prefix
+        let long = format!(r"\\?\C:\{}", "a".repeat(300));
+        assert_eq!(plain(PathBuf::from(&long)), PathBuf::from(&long));
+    }
+
+    #[test]
+    fn non_ascii_folders() {
+        let app = scratch("Søren Ærø æ ø å");
+        let v = bundled();
+        let src = app.join("Målinger");
+        fs::create_dir_all(&src).unwrap();
+        let f = src.join("Z_mellemtone ø.csv");
+        fs::write(&f, "f,re,im\n1,2,3\n").unwrap();
+        let folder = save(&app, &v, &[f.to_string_lossy().into()]).unwrap();
+        assert!(folder.join("sources/Z_mellemtone ø.csv").is_file());
+        assert_eq!(list(&app)[0].id, "system-d-group10");
+        assert_eq!(load(&folder).unwrap()["id"], "system-d-group10");
+        let _ = fs::remove_dir_all(&app);
     }
 
     #[test]

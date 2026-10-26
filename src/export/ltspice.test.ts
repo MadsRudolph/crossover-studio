@@ -142,3 +142,10 @@ describe("parts list", () => {
     expect(bomCsv(rowsB, design).split("\r\n")[1]).toBe("L1_mid,Midrange (low-pass),Series L,Inductor,0.82 mH,0.00082,course basket (Appendix 1)");
   });
 });
+
+describe("plain ASCII for LTspice", () => {
+  it("spells letters that do not decompose", async () => {
+    const { ascii } = await import("./ltspice");
+    expect(ascii("Gruppe 7 · Søren Ærø – Straße")).toBe("Gruppe 7 - Soren AEro - Strasse");
+  });
+});

@@ -1,0 +1,101 @@
+/* Report tab of the export sheet. Only design tokens from docs/DESIGN.md / src/ui/tokens.css. Prefix: rp-
+   The figures are SVGs in the print palette on their own white page (a report is printed); everything
+   around them uses the theme tokens. */
+
+.rp-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rp-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--surface-2);
+}
+.rp-sections ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px 16px;
+}
+.rp-sections li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.rp-hint {
+  padding-left: 38px;
+  color: var(--text-3);
+  font-size: var(--fs-11);
+  line-height: 1.4;
+}
+.rp-lang {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.rp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rp-preview {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.rp-preview .xs-files-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.rp-scroll {
+  max-height: 560px;
+  overflow: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rp-scroll > * {
+  flex: none;   /* a scrolling flex column would otherwise squeeze the figures (overflow: hidden) to nothing */
+}
+.rp-scroll:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.rp-md {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--fs-12);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+.rp-fig {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+}
+.rp-fig svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}

@@ -11,6 +11,7 @@ import { toast } from "../Toast";
 import { fmtFreq, parseNumber } from "../format";
 import { useOptimiser, toggleOptimiser } from "./optimiser";
 import { useShell } from "./shellState";
+import { viewKey } from "./viewKeys";
 import { pickAndOpenProfile } from "../../wizard/profiles";
 
 export interface Command {
@@ -127,7 +128,7 @@ export function buildCommands(): Command[] {
   const cmds: Command[] = [];
 
   VIEWS.forEach((v, i) => cmds.push({
-    id: `view.${v.id}`, title: `Show ${v.title}`, section: "View", shortcut: i < 9 ? String(i + 1) : undefined, icon: v.icon,
+    id: `view.${v.id}`, title: `Show ${v.title}`, section: "View", shortcut: viewKey(i), icon: v.icon,
     keywords: "view tab open", detail: s.view === v.id ? "current" : undefined, run: () => st().setView(v.id),
   }));
 
@@ -142,6 +143,8 @@ export function buildCommands(): Command[] {
       disabled: !has, run: () => { st().setDesign(defaultDesign(st().profile)); toast({ title: "Design reset", action: { label: "Undo", onClick: () => st().undo() } }); } },
     { id: "file.export", title: "Export…", section: "File", shortcut: "E", icon: Download, keywords: "minidsp ltspice biquad bom report save",
       disabled: !has, run: openExport },
+    { id: "file.report", title: "Export report…", section: "File", icon: Download, keywords: "latex overleaf markdown pgfplots quiz numbers figures",
+      disabled: !has, run: () => { try { localStorage.setItem("crossover-studio:export-tab", "report"); } catch { /* storage unavailable */ } openExport(); } },
     { id: "file.import", title: "Import measurements…", section: "File", icon: Import, keywords: "new profile wizard mat csv txt lab",
       run: () => st().setUi({ wizard: true }) },
     { id: "file.open", title: "Open profile…", section: "File", icon: FolderOpen, keywords: "load json", run: () => void openProfileFromDisk() },

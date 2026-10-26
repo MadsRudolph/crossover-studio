@@ -98,6 +98,31 @@ export function* optimise(p: Prepared, design0: Design, opts: OptimiseOptions = 
   return { score: best, des };
 }
 
+/** Fresh values for the parts a topology switch has just added: coordinate descent over only those
+ *  parts of one branch, everything else held, starting from the values they were seeded with. A new
+ *  3rd-order part copied from its 2nd-order sibling (L2 = L1) can wreck the response; this puts it
+ *  where the score wants it. Returns the branch's new value map. */
+export function seedParts(p: Prepared, design: Design, unit: "mid" | "tw", names: string[], rounds = 2): Record<string, number> {
+  const des: Design = structuredClone(design), std = p.profile.components;
+  const parts = topology(des[unit].topo).parts.filter(t => names.includes(t.name));
+  let best = score(p, des);
+  for (let r = 0; r < rounds; r++) {
+    let changed = false;
+    for (const part of parts) {
+      const list = part.kind === "L" ? std.L : part.kind === "C" ? std.C : std.R;
+      let cur = des[unit].vals[part.name];
+      for (const v of list) {
+        des[unit].vals[part.name] = v;
+        const s = score(p, des);
+        if (s < best - 1e-9) { best = s; cur = v; changed = true; }
+      }
+      des[unit].vals[part.name] = cur;
+    }
+    if (!changed) break;
+  }
+  return des[unit].vals;
+}
+
 /** Monte Carlo band (2.5-97.5 %) of the on-axis sum in dB with the passive parts drawn uniformly
  *  within L +-5 %, C +-10 %, R +-5 %. Deterministic (fixed LCG seed) so the band does not flicker. */
 export function tolerance(p: Prepared, design: Design, runs = 120, tol = { L: 0.05, C: 0.10, R: 0.05 }): { lo: Float64Array; hi: Float64Array } {

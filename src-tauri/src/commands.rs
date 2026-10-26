@@ -79,10 +79,10 @@ fn detect(path: &Path, bytes: &[u8]) -> Kind {
     }
     // Text files are UTF-8 or ASCII; a NUL byte in the first kilobyte means binary.
     let head = &bytes[..bytes.len().min(1024)];
-    let binary = head.contains(&0);
+    let binary = head.contains(&0) && !text::is_utf16(bytes);
     // A .mat that is really text (a renamed CSV) is read as text; a binary one goes to the MAT reader,
     // which explains what is wrong with it.
-    if !binary && (std::str::from_utf8(bytes).is_ok() || matches!(ext.as_str(), "txt" | "csv" | "tsv" | "dat")) {
+    if !binary && (std::str::from_utf8(bytes).is_ok() || text::is_utf16(bytes) || matches!(ext.as_str(), "txt" | "csv" | "tsv" | "dat")) {
         return Kind::Text;
     }
     if ext == "mat" {
@@ -121,7 +121,7 @@ pub fn inspect_path(path: &Path) -> Result<FileInfo, String> {
             }
         }
         Kind::Text => {
-            let text = String::from_utf8_lossy(&bytes);
+            let text = text::decode(&bytes);
             info.format = if text::looks_like_ltspice(&text) { "ltspice" } else { "csv" }.into();
             match text::parse_text(&text) {
                 Ok((_, t)) => {
@@ -230,7 +230,7 @@ pub fn read_series_spec(spec: &ReadSpec) -> Result<Series, String> {
             read_mat_series(&file, spec, name)
         }
         Kind::Text => {
-            let (fmt, t) = text::parse_text(&String::from_utf8_lossy(&bytes)).map_err(|e| format!("{name}: {e}"))?;
+            let (fmt, t) = text::parse_text(&text::decode(&bytes)).map_err(|e| format!("{name}: {e}"))?;
             text::validate(&t.f, &t.re, &t.im).map_err(|e| format!("{name}: {e}"))?;
             let mut src = Map::new();
             src.insert("file".into(), name.into());
@@ -244,6 +244,50 @@ pub fn read_series_spec(spec: &ReadSpec) -> Result<Series, String> {
     }
 }
 
+/// File types a measurement can come in, matched case-insensitively ("DATA.MAT" too).
+const MEASUREMENT_EXTS: [&str; 5] = ["mat", "txt", "csv", "tsv", "dat"];
+/// Folder expansion stops at this depth below the dropped folder, and after this many files.
+const MAX_FOLDER_DEPTH: usize = 4;
+const MAX_FOLDER_FILES: usize = 1000;
+
+/// Replaces every folder in `paths` by the measurement files inside it (sub-folders included, sorted by
+/// path, hidden entries skipped), so a group can drop its whole lab folder. Files pass through unchanged.
+pub fn expand_paths(paths: &[String]) -> Vec<String> {
+    fn walk(dir: &Path, depth: usize, out: &mut Vec<PathBuf>) {
+        let Ok(rd) = std::fs::read_dir(dir) else { return };
+        let mut entries: Vec<PathBuf> = rd.flatten().map(|e| e.path()).collect();
+        entries.sort();
+        for p in entries {
+            if out.len() >= MAX_FOLDER_FILES {
+                return;
+            }
+            let hidden = p.file_name().is_some_and(|n| n.to_string_lossy().starts_with('.'));
+            if hidden {
+                continue;
+            }
+            if p.is_dir() {
+                if depth < MAX_FOLDER_DEPTH && !p.file_name().is_some_and(|n| n == "node_modules") {
+                    walk(&p, depth + 1, out);
+                }
+            } else if p.extension().is_some_and(|e| MEASUREMENT_EXTS.iter().any(|x| e.eq_ignore_ascii_case(x))) {
+                out.push(p);
+            }
+        }
+    }
+    let mut out = Vec::new();
+    for s in paths {
+        let p = Path::new(s);
+        if p.is_dir() {
+            let mut found = Vec::new();
+            walk(p, 0, &mut found);
+            out.extend(found.into_iter().map(|f| f.to_string_lossy().into_owned()));
+        } else {
+            out.push(s.clone());
+        }
+    }
+    out
+}
+
 fn app_data(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     app.path().app_data_dir().map_err(|e| format!("could not find the app data folder: {e}"))
 }
@@ -254,6 +298,11 @@ fn app_data(app: &tauri::AppHandle) -> Result<PathBuf, String> {
 #[tauri::command]
 pub async fn inspect_file(path: String) -> Result<FileInfo, String> {
     inspect_path(Path::new(&path))
+}
+
+#[tauri::command]
+pub async fn expand_folders(paths: Vec<String>) -> Result<Vec<String>, String> {
+    Ok(expand_paths(&paths))
 }
 
 #[tauri::command]
@@ -343,6 +392,24 @@ mod tests {
         assert_eq!(detect(&path, text.as_bytes()), Kind::Text);
         let s = read_series_spec(&ReadSpec { path: path.to_string_lossy().into_owned(), ..Default::default() }).unwrap();
         assert_eq!(s.f, vec![100.0, 200.0]);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn folders_expand_to_their_measurement_files() {
+        let dir = std::env::temp_dir().join(format!("xs-expand-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        for (rel, body) in [("Lab D/data/labD_tweeter.mat", ""), ("Lab D/data/NOTES.TXT", ""), ("Lab E/data/labE_system_0.MAT", ""),
+                            ("Lab E/plot.png", ""), (".git/x.txt", ""), ("Lab E/.hidden.csv", ""), ("top.csv", "")] {
+            let p = dir.join(rel);
+            std::fs::create_dir_all(p.parent().unwrap()).unwrap();
+            std::fs::write(p, body).unwrap();
+        }
+        let single = dir.join("top.csv").to_string_lossy().into_owned();
+        let got = expand_paths(&[dir.to_string_lossy().into_owned(), single.clone()]);
+        let rel: Vec<String> = got.iter().map(|p| Path::new(p).strip_prefix(&dir).unwrap().to_string_lossy().replace('\\', "/")).collect();
+        assert_eq!(rel, ["Lab D/data/NOTES.TXT", "Lab D/data/labD_tweeter.mat", "Lab E/data/labE_system_0.MAT", "top.csv", "top.csv"]);
+        assert_eq!(expand_paths(std::slice::from_ref(&single)), [single]);
         let _ = std::fs::remove_dir_all(&dir);
     }
 

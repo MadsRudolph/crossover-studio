@@ -148,6 +148,7 @@ describe("profile from CSV and Matlab2LTspice files only", () => {
     expect(systemProblems(system)).toEqual([]);
     const id = slugify(system.name);
     expect(id).toBe("system-d-group-10-from-csv");
+    expect(slugify("Gruppe 7 – Søren & Åse")).toBe("gruppe-7-soren-ase");
     expect(isValidId(id)).toBe(true);
     const profile = buildProfile({ system, id, assignments, series, vents });
     expect(Object.keys(profile.measurements.tf)).toEqual(["0", "30"]);

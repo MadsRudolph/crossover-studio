@@ -104,6 +104,11 @@
 @keyframes sc-flow {
   to { stroke-dashoffset: -36; }
 }
+/* Behind a dialog or the wizard the flow is hidden anyway; repainting it every frame under the blurred
+   scrim cost a software-rendered window two thirds of its frame rate (palette typing lagged). */
+body:has(.cs-dialog-layer, .wz-layer) .sc-root.is-animated .sc-flow {
+  animation-play-state: paused;
+}
 @media (prefers-reduced-motion: reduce) {
   .sc-root.is-animated .sc-flow {
     animation: none;

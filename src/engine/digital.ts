@@ -47,6 +47,9 @@ export const ALIGNMENTS: { key: Align; name: string; order: number; note: string
 export function sections(f0: number, kind: FilterKind, align: Align): Biquad[] {
   const Qs = ALIGN_Q[align];
   if (!Qs) throw new Error(`unknown alignment "${align}"`);
+  // at or above half the sample rate the RBJ formulas give a filter that is not the one asked for
+  if (!(f0 > 0 && f0 < FS_DSP / 2))
+    throw new Error(`the MiniDSP crossover frequency must lie between 0 and ${FS_DSP / 2000} kHz (got ${f0} Hz)`);
   return Qs.map(Q => biquad(f0, Q, kind));
 }
 

@@ -13,9 +13,9 @@ import { prepare as prepareProfile, type Prepared } from "./system";
 import type { OptimiseMessage, OptimiseRequest } from "./worker";
 
 export type { Prepared, EngineState, ProbeSample, ProbeUnit, NodeVoltages, BoxCurves, BoxCurveSet, BoxValidation, ValidationCurve } from "./system";
-export { prepare, compute, offAxisAngle, boxResponse, boxModelCurves, boxValidation, driverValidation, probeSample, nodeVoltages, displayPhase, V_REF } from "./system";
+export { prepare, compute, offAxisAngle, boxResponse, boxModelCurves, boxValidation, driverValidation, probeSample, nodeVoltages, displayPhase, V_REF, smooth } from "./system";
 export { fitBox, boxConfig, tuningHz, tubeMass, type BoxFitEx, type BoxConfig } from "./box";
-export { tolerance, type OptimiseOptions, type OptimiseStep } from "./optimise";
+export { seedParts, tolerance, type OptimiseOptions, type OptimiseStep } from "./optimise";
 export { ALIGNMENTS, FS_DSP, sections, type Biquad, type FilterKind } from "./digital";
 export { TOPOLOGY_LIBRARY, legacyTopologies, type Topology, type TopologyPart } from "./passive";
 export { interpLogF, nearestIndex } from "./complex";

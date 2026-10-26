@@ -112,20 +112,20 @@ function FitResult() {
   return (
     <div className="wz-fit-result">
       <div className="wz-stats is-ts">
-        <Stat label="f_s" value={`${fmt(f.ts.fs)} Hz`} />
-        <Stat label="Q_ms" value={fmt(f.ts.Qms)} />
-        <Stat label="Q_es" value={fmt(f.ts.Qes)} />
-        <Stat label="Q_ts" value={fmt(f.ts.Qts)} />
-        <Stat label="V_as" value={`${fmt(f.ts.Vas_L)} L`} />
-        <Stat label="M_ms" value={`${fmt(f.ts.Mms * 1000)} g`} />
+        <Stat label={<>f<sub>s</sub></>} value={`${fmt(f.ts.fs)} Hz`} />
+        <Stat label={<>Q<sub>ms</sub></>} value={fmt(f.ts.Qms)} />
+        <Stat label={<>Q<sub>es</sub></>} value={fmt(f.ts.Qes)} />
+        <Stat label={<>Q<sub>ts</sub></>} value={fmt(f.ts.Qts)} />
+        <Stat label={<>V<sub>as</sub></>} value={`${fmt(f.ts.Vas_L)} L`} />
+        <Stat label={<>M<sub>ms</sub></>} value={`${fmt(f.ts.Mms * 1000)} g`} />
         <Stat label="Bl" value={`${fmt(f.drv.Bl)} T·m`} />
-        <Stat label="L_e" value={`${fmt(f.drv.Le * 1000)} mH`} />
-        <Stat label="R_E" value={`${fmt(f.RE)} Ω`} />
+        <Stat label={<>L<sub>e</sub></>} value={`${fmt(f.drv.Le * 1000)} mH`} />
+        <Stat label={<>R<sub>E</sub></>} value={`${fmt(f.RE)} Ω`} />
         <Stat label="Driver fit error" value={q.driver.toExponential(1)} tone={qTone(q.driver, 0.02, 0.08)}
               hint="Mean squared log error of the free-air and closed-box impedance, lower is better (System D: 5.5e-3)." />
         {f.ventFits?.length ? <Stat label="Vent fit error" value={q.vents.toExponential(1)} tone={qTone(q.vents, 0.1, 0.3)}
                                     hint="The same for the vented curves (System D: 4.9e-2)." /> : null}
-        {f.ventFits?.map(v => <Stat key={v.label} label={`f_B, ${v.label}`} value={`${fmt(v.fB)} Hz`} />)}
+        {f.ventFits?.map(v => <Stat key={v.label} label={<>f<sub>B</sub>, {v.label}</>} value={`${fmt(v.fB)} Hz`} />)}
       </div>
       {curves.length > 0 && plot && (
         <div className="wz-fit-plot">

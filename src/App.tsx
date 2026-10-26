@@ -93,13 +93,13 @@ export default function App() {
               <Inspector />
             </ErrorBoundary>
           </Panel>
-          <Separator className="cs-sep cs-sep-v" />
+          <Separator className="cs-sep cs-sep-v" aria-label="Resize the inspector" />
           <Panel id="work" minSize={560} className="cs-pane-work">
             <Group id="cs-layout-work" orientation="vertical" defaultLayout={work.defaultLayout} onLayoutChanged={work.onLayoutChanged}>
               <Panel id="view" minSize={240}>
                 <Workspace />
               </Panel>
-              <Separator className="cs-sep cs-sep-h" />
+              <Separator className="cs-sep cs-sep-h" aria-label="Resize the signal chain dock" />
               <Panel
                 id="dock"
                 panelRef={dockRef}

@@ -249,6 +249,13 @@ export function classifyFile(file: WizardFile): Candidate[] {
   // Matlab2LTspice also writes model curves (Box_woof.txt: "BvBox_woof"): not a measurement
   if (/^(box|model|sim)(_|$)/.test(nameS) || /^bvbox/i.test(header)) return [];
 
+  // A lab folder holds the run used next to its repeats ("_r1", "_r2") and rejected runs ("_bad"): the
+  // plain name wins whatever order the files arrive in, and a rejected run only fills a role nothing else can.
+  const rejected = has(nameS, "bad|rejected|reject|wrong|old|discard|discarded|failed|test|backup|copy");
+  const repeat = /_(r|run|rep|take)\d+$/.test(nameS);
+  const demerit = rejected ? 0.2 : repeat ? 0.05 : 0;
+  const demeritWhy = rejected ? " (named as a rejected run)" : repeat ? " (a repeat run)" : "";
+
   const out: Candidate[] = [];
   for (const item of items) {
     const q = quantityFrom(all, item.dataVar, header);
@@ -265,7 +272,12 @@ export function classifyFile(file: WizardFile): Candidate[] {
       const angleSrc = angleFrom(nameS) ? "the name" : angleFrom(meta) ? "the tag" : "no angle named, read as on axis";
       let unit = unitFrom(nameS) ?? unitFrom(meta);
       let conf = base(fromName(unitFrom)), why = `${q.why}, ${unit ? UNIT_NAME[unit] : ""} from the ${fromName(unitFrom) ?? "name"}`;
-      if (!unit && item.columns === 3 && item.column !== undefined) {
+      const labelled = !unit && item.column !== undefined ? columnUnits(file, item.columns) : null;
+      if (labelled && item.column !== undefined) {
+        // the file names its columns (Lab E: units = {'woofer','midrange','tweeter'})
+        unit = labelled[item.column];
+        conf = 0.9; why = `column ${item.column + 1} of ${item.dataVar} is "${textVar(`units{${item.column + 1}}`) || UNIT_NAME[unit]}" in the file's unit list`;
+      } else if (!unit && item.columns === 3 && item.column !== undefined) {
         // Lab E system files: H(:,1..3) = woofer, midrange, tweeter
         unit = UNITS[item.column];
         conf = 0.8; why = `column ${item.column + 1} of ${item.dataVar}: woofer, midrange, tweeter is the Lab E order`;
@@ -305,7 +317,20 @@ export function classifyFile(file: WizardFile): Candidate[] {
       out.push({ role: "woofer:free", item, confidence: 0.45 - varPenalty, reason: `${q.why}, woofer: free air or closed box not named, guessed free air` });
     }
   }
-  return out;
+  return demerit ? out.map(c => ({ ...c, confidence: c.confidence - demerit, reason: c.reason + demeritWhy })) : out;
+}
+
+/** The unit of each data column when the file lists them in a cell of names (units{1..k}, as the Rust
+ *  reader flattens a cell; also "labels" or "drivers"): one distinct unit per column, or null. */
+export function columnUnits(file: WizardFile, columns: number): UnitId[] | null {
+  const vars = file.info?.variables ?? [];
+  for (const cell of ["units", "labels", "drivers", "channels"]) {
+    const names = Array.from({ length: columns }, (_, j) => vars.find(v => v.name === `${cell}{${j + 1}}` && v.class === "char")?.text);
+    if (names.some(n => n === undefined)) continue;
+    const units = names.map(n => unitFrom(normalise(n!)));
+    if (units.every((u): u is UnitId => u !== null) && new Set(units).size === units.length) return units;
+  }
+  return null;
 }
 
 export interface AutoResult {

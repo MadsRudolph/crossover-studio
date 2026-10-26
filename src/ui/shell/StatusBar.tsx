@@ -96,11 +96,11 @@ export function StatusBar() {
                        format={v => fmtFreq(v)} parse={s => parseNumber(s)} min={20} max={20000}
                        step={Math.max(1, Math.round(probe / 50))} onChange={setProbe} />
           {sample && (
-            <Tooltip side="top" title={`At ${fmtFreq(sample.f)}${sample.angle === "30" ? ", 30°" : ""}`}
+            <Tooltip side="top" title={`At ${fmtFreq(probe)}${sample.angle === "30" ? ", 30°" : ""}`}
                      content={<span className="cs-sb-probe-tip">{(["woof", "mid", "tw", "sum"] as const).map(u => (
                        <span key={u} className="mono"><i style={{ background: `var(--${u})` }} />{UNIT_NAME[u]} {fmtDb(sample.units[u].relDb, { sign: true })}</span>
                      ))}<em>relative to the system level</em></span>}>
-              <span className="cs-sb-level mono" tabIndex={0}>Σ {fmtDb(sample.units.sum.relDb, { sign: true })}</span>
+              <span className="cs-sb-level mono" tabIndex={0} aria-label={`Sum at the probe ${fmtDb(sample.units.sum.relDb, { sign: true })} re system level`}>Σ {fmtDb(sample.units.sum.relDb, { sign: true })}</span>
             </Tooltip>
           )}
         </div>

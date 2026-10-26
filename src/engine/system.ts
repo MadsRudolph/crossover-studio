@@ -243,8 +243,19 @@ export function metrics(p: Prepared, angles: Results["angles"]): Metrics {
 
 const fmtHz = (x: number) => x >= 1000 ? `${(x / 1000).toFixed(2)} kHz` : `${x.toFixed(0)} Hz`;
 
-/** The design rules as pass/warn/fail items for the Check panel. Ids are stable (UI keys). */
-export function checks(p: Prepared, on: Results["angles"][string], m: Metrics, lf: { f3: number; ripple: number }): Check[] {
+/** Spread (max - min, dB) of the 1/6-octave smoothed sum over 150 Hz-10 kHz: the off-axis judging band
+ *  (above 10 kHz every tweeter beams), shared by the Check panel and the verdict. */
+export function offAxisSpread(p: Prepared, out: Results["angles"][string]): number {
+  const ys = smooth(p, dbArray(out.sum));
+  let lo = Infinity, hi = -Infinity;
+  for (let i = 0; i < p.f.length; i++) if (p.f[i] >= 150 && p.f[i] <= 10000) { lo = Math.min(lo, ys[i]); hi = Math.max(hi, ys[i]); }
+  return hi - lo;
+}
+
+/** The design rules as pass/warn/fail items for the Check panel. Ids are stable (UI keys). The
+ *  thresholds are the ones the verdict (assess.ts) uses, so the two never disagree on a state.
+ *  `offSpread` is offAxisSpread() of the judged off-axis angle (falls back to m.off30.spread). */
+export function checks(p: Prepared, on: Results["angles"][string], m: Metrics, lf: { f3: number; ripple: number }, offSpread?: number): Check[] {
   const f = p.f, L = p.profile.limits;
   const twAtFs = dbAt(on.tw, p._e.iFs) - m.on.level;
   let worst = 0;
@@ -258,7 +269,10 @@ export function checks(p: Prepared, on: Results["angles"][string], m: Metrics, l
       detail: `150 Hz–15 kHz within ${m.on.spread.toFixed(1)} dB (aim ±2 dB, 1/6 octave)` },
   ];
   const off = m.off30;
-  if (off) out.push({ id: "off", state: off.spread <= 6 ? "good" : off.spread <= 8 ? "warn" : "bad", title: "Even off axis", detail: `${m.offAngle ?? "30"}° within ${off.spread.toFixed(1)} dB` });
+  if (off) {
+    const sp = offSpread ?? off.spread;
+    out.push({ id: "off", state: sp <= 6 ? "good" : sp <= 9 ? "warn" : "bad", title: "Even off axis", detail: `${m.offAngle ?? "30"}° within ${sp.toFixed(1)} dB to 10 kHz` });
+  }
   out.push(
     { id: "xwm", state: inR(m.x_wm, L.wm) ? "good" : "warn", title: "Woofer/mid crossover placed",
       detail: m.x_wm ? `${fmtHz(m.x_wm)} (aim ${L.wm[0]}–${L.wm[1]} Hz)` : "the two never cross" },
@@ -270,7 +284,7 @@ export function checks(p: Prepared, on: Results["angles"][string], m: Metrics, l
       detail: `sum never more than ${(-worst).toFixed(1)} dB below the power sum` },
     { id: "load", state: m.Zamp2_min >= 4 ? "good" : m.Zamp2_min >= 3 ? "warn" : "bad", title: "Safe amplifier load",
       detail: `ch. 2 never below ${m.Zamp2_min.toFixed(2)} Ω` },
-    { id: "bass", state: lf.ripple <= 2 ? "good" : lf.ripple <= 3 ? "warn" : "bad", title: "Smooth bass",
+    { id: "bass", state: lf.ripple <= 1.5 ? "good" : lf.ripple <= 3 ? "warn" : "bad", title: "Smooth bass",
       detail: `f3 ${lf.f3.toFixed(1)} Hz, ripple ${lf.ripple >= 0 ? "+" : ""}${lf.ripple.toFixed(1)} dB` },
   );
   return out;
@@ -285,8 +299,9 @@ export function compute(p: Prepared, design: Design): Results {
   for (const a of p.angles) angles[a] = evaluate(p, design, a, ratio);
   const m = metrics(p, angles);
   const lf = f3Ripple(BASS_GRID, boxSystem(p.fit, p.fit.drv, configElements(p.fit, cfg), BASS_GRID).p1m);
+  const offSpread = m.offAngle ? offAxisSpread(p, angles[m.offAngle]) : undefined;
   return {
-    f: p.f, angles, metrics: m, checks: checks(p, angles["0"], m, lf),
+    f: p.f, angles, metrics: m, checks: checks(p, angles["0"], m, lf, offSpread),
     box: { MAP: cfg.MAP, fill: cfg.fill, label: cfg.label, fB: tuningHz(p.fit, cfg.MAP, cfg.fill), f3: lf.f3, ripple: lf.ripple },
   };
 }
@@ -394,7 +409,7 @@ export interface BoxCurveSet {
   spl_dB: Float64Array;
   /** Peak cone excursion for 2.83 V rms (mm). */
   excursion_mm: Float64Array;
-  /** Peak air speed in the vent for 2.83 V rms (m/s); zeros when closed. */
+  /** Peak air speed in the (fastest) vent for 2.83 V rms (m/s); zeros when closed. */
   ventSpeed_ms: Float64Array;
   /** Electrical input impedance (ohm). */
   ZE: CArray;
@@ -412,12 +427,12 @@ const BOX_GRID = logspace(5, 400, 400);
 function curveSet(fit: BoxFit, cfg: BoxConfig, f: number[]): BoxCurveSet {
   const r = boxSystem(fit, fit.drv, configElements(fit, cfg), f), n = f.length;
   const spl = carray(n), db = new Float64Array(n), x = new Float64Array(n), v = new Float64Array(n);
-  const ventArea = Math.PI * cfg.ap ** 2;
+  const ventArea = Math.PI * cfg.ap ** 2, vk = cfg.ventSpeedFactor ?? 1;
   for (let i = 0; i < n; i++) {
     spl.re[i] = r.p1m.re[i] * V_REF; spl.im[i] = r.p1m.im[i] * V_REF;
     db[i] = 20 * Math.log10(cabsAt(spl, i) / 20e-6);
     x[i] = cabsAt(r.UD, i) / (2 * Math.PI * f[i] * fit.SD) * V_REF * Math.SQRT2 * 1e3;
-    v[i] = cfg.MAP ? cabsAt(r.UP, i) / ventArea * V_REF * Math.SQRT2 : 0;
+    v[i] = cfg.MAP ? cabsAt(r.UP, i) / ventArea * vk * V_REF * Math.SQRT2 : 0;
   }
   return { label: cfg.label, MAP: cfg.MAP, fB: tuningHz(fit, cfg.MAP, cfg.fill), spl, spl_dB: db, excursion_mm: x, ventSpeed_ms: v, ZE: r.ZE };
 }

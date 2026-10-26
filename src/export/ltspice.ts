@@ -28,9 +28,13 @@ export interface LtspiceExport {
 
 const UNIT_LONG: Record<UnitId, string> = { woof: "woofer", mid: "midrange", tw: "tweeter" };
 
+const LETTERS: Record<string, string> = { ø: "o", Ø: "O", æ: "ae", Æ: "AE", œ: "oe", Œ: "OE", ß: "ss", đ: "d", Đ: "D", ł: "l", Ł: "L" };
+
 /** LTspice reads schematics and includes as ANSI: keep names in comments to plain ASCII. */
 export function ascii(s: string): string {
   return s.replace(/[·•]/g, "-").replace(/[″“”]/g, '"').replace(/[′‘’]/g, "'").replace(/[–—]/g, "-").replace(/µ/g, "u").replace(/⌀/g, "D ")
+    // letters NFKD does not decompose (Danish ø and æ, German ß, ...): spell them, so "Søren" stays readable
+    .replace(/[øØæÆœŒßđĐłŁ]/g, c => LETTERS[c])
     .normalize("NFKD").replace(/[^\x20-\x7e\r\n\t]/g, "");
 }
 

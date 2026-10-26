@@ -2,7 +2,7 @@
 // wheel and keyboard interaction, the readout card and crosshair sync. React only feeds it props, so a
 // mouse move never re-renders React; all painting happens on requestAnimationFrame when something is dirty.
 
-import { computeFrame, drawBase, drawOverlay, type BaseInput, type Frame, type HoverState } from "./render";
+import { computeFrame, drawBase, drawOverlay, isAngleUnit, type BaseInput, type Frame, type HoverState } from "./render";
 import {
   clampView,
   easeOut,
@@ -401,7 +401,8 @@ export class PlotController {
     if (this.props.tooltipFormat) return this.props.tooltipFormat(v, s, xHz);
     const unit = s.unit ?? this.props.yUnit ?? "";
     const dec = Math.min(3, (this.frame?.yDecimals ?? 0) + 1);
-    return unit ? `${formatNumber(v, dec)} ${unit}` : formatNumber(v, dec);
+    // degrees sit on the number (44.9°), every other unit after a space (3.2 dB)
+    return unit ? `${formatNumber(v, dec)}${isAngleUnit(unit) ? "°" : " " + unit}` : formatNumber(v, dec);
   }
 
   private renderCard() {

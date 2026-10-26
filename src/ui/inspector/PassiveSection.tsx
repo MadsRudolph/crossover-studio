@@ -1,10 +1,10 @@
 import { useMemo } from "react";
-import { topologies, type Topology } from "../../engine";
+import { seedParts, topologies, type Topology } from "../../engine";
 import { useStore } from "../../state/store";
 import type { PassiveBranch } from "../../types";
 import { Field, Section, Segmented, Stat, Switch, ValuePicker } from "..";
 import { fmtDb, fmtValue, type PartKind } from "../format";
-import { POLARITY_OPTIONS, UNIT_COLOR, type SectionCommon } from "./common";
+import { POLARITY_OPTIONS, UNIT_COLOR, carryValues, type SectionCommon } from "./common";
 
 type Unit = "mid" | "tw";
 
@@ -28,6 +28,10 @@ function padDb(Rs: number, Rp: number | null | undefined, R: number): number {
   return 20 * Math.log10(par / (Rs + par));
 }
 
+/** Part values a branch had before its topology changed, per unit and part name, so stepping
+ *  2nd → 3rd → 2nd brings back the tuned values instead of the middle of the parts list. */
+const remembered: Record<Unit, Record<string, number>> = { mid: {}, tw: {} };
+
 export function PassiveSection({ unit, step, open, onOpenChange, status }: SectionCommon & { unit: Unit; step: number }) {
   const branch = useStore(s => s.design[unit]);
   const pol = useStore(s => s.design.pol[unit]);
@@ -47,19 +51,26 @@ export function PassiveSection({ unit, step, open, onOpenChange, status }: Secti
   const title = unit === "mid" ? "Midrange passive" : "Tweeter passive";
   const unitInfo = profile.units[unit];
 
-  const setTopo = (key: string) => edit(d => {
-    const b = d[unit] as PassiveBranch;
-    const old = b.vals;
-    const vals: Record<string, number> = {};
-    for (const { kind, name } of library[key].parts) {
-      // keep a value the new topology shares by name, else start from the middle of the parts list
-      const sameKind = Object.entries(old).find(([n]) => n.startsWith(kind));
-      const list = listFor(kind);
-      vals[name] = old[name] ?? (sameKind ? sameKind[1] : list[Math.floor(list.length / 2)]);
+  const setTopo = (key: string) => {
+    const cur = useStore.getState().design;
+    const old = cur[unit].vals, mem = remembered[unit];
+    let vals = carryValues(library[key].parts, old, mem, listFor);
+    // parts this topology adds that have no value of their own yet: tune them on the spot, so a
+    // 3rd-order L2 does not start as a copy of L1 (which can put a 10 dB peak at the crossover)
+    const fresh = library[key].parts.map(p => p.name)
+      .filter(n => old[n] === undefined && !(mem[n] !== undefined && listFor(library[key].parts.find(p => p.name === n)!.kind).includes(mem[n])));
+    if (fresh.length) {
+      const trial = structuredClone(cur);
+      trial[unit] = { ...trial[unit], topo: key, vals };
+      try { vals = seedParts(prep, trial, unit, fresh); } catch { /* keep the carried values */ }
     }
-    b.topo = key;
-    b.vals = vals;
-  });
+    edit(d => {
+      const b = d[unit] as PassiveBranch;
+      Object.assign(remembered[unit], b.vals);
+      b.topo = key;
+      b.vals = vals;
+    });
+  };
 
   const valueSummary = parts.map(p => fmtValue(branch.vals[p.name], p.kind)).join(" · ");
   const zobelSummary = branch.zobel ? " · Zobel" : "";

@@ -15,6 +15,8 @@ async function invoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T
 // ---------------------------------------------------------------- Rust commands (src-tauri/src/lib.rs)
 /** Inspect a measurement file: format, and for .mat every variable with class, size and complexity. */
 export const inspectFile = (path: string) => invoke<FileInfo>("inspect_file", { path });
+/** Replaces each folder by the .mat/.txt/.csv/.tsv/.dat files inside it (sub-folders too); files pass through. */
+export const expandFolders = (paths: string[]) => invoke<string[]>("expand_folders", { paths });
 /** Read one frequency/complex pair. For .mat give freqVar, dataVar and optionally column; text files need only the path. */
 export const readSeries = (spec: ReadSpec) => invoke<Series>("read_series", { spec });
 /** Profiles saved by the user (in the app data folder) plus any opened recently. */
@@ -26,17 +28,28 @@ export const writeTextFile = (path: string, contents: string) => invoke<void>("w
 export const writeBinaryFile = (path: string, bytes: number[]) => invoke<void>("write_binary_file", { path, bytes });
 
 // ---------------------------------------------------------------- dialogs
+// GTK matches filter patterns case-sensitively, so "LABD_TWEETER.MAT" needs its own entry on Linux.
+const withUpper = (exts: string[]) => [...exts, ...exts.map(e => e.toUpperCase())];
+
 export async function pickMeasurementFiles(): Promise<string[]> {
   if (!isTauri()) throw new Error("Opening files needs the desktop app");
   const { open } = await import("@tauri-apps/plugin-dialog");
-  const r = await open({ multiple: true, filters: [{ name: "Measurements", extensions: ["mat", "txt", "csv"] }] });
+  const r = await open({ multiple: true, filters: [{ name: "Measurements", extensions: withUpper(["mat", "txt", "csv", "tsv", "dat"]) }] });
   return r === null ? [] : Array.isArray(r) ? r : [r];
+}
+
+/** A folder of measurements (a whole Lab D or Lab E data folder). Returns null on cancel. */
+export async function pickMeasurementFolder(): Promise<string | null> {
+  if (!isTauri()) throw new Error("Opening folders needs the desktop app");
+  const { open } = await import("@tauri-apps/plugin-dialog");
+  const r = await open({ directory: true, multiple: false, title: "Add every measurement in a folder" });
+  return typeof r === "string" ? r : null;
 }
 
 export async function pickProfileFile(): Promise<string | null> {
   if (!isTauri()) throw new Error("Opening files needs the desktop app");
   const { open } = await import("@tauri-apps/plugin-dialog");
-  const r = await open({ multiple: false, filters: [{ name: "Crossover Studio profile", extensions: ["json"] }] });
+  const r = await open({ multiple: false, filters: [{ name: "Crossover Studio profile", extensions: withUpper(["json"]) }] });
   return typeof r === "string" ? r : null;
 }
 

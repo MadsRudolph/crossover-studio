@@ -2,10 +2,11 @@
 // MiniDSP app's Xover > Advanced window, with the course procedure (project guide, section 3.1).
 import { Check, Copy, Download } from "lucide-react";
 import { useState } from "react";
-import { ALIGNMENTS, minidspText, type FilterKind } from "../engine";
+import { ALIGNMENTS, type FilterKind } from "../engine";
 import type { Design, Profile } from "../types";
 import { Badge, Button, fmtFreq } from "../ui";
 import { copyText, saveTextFile } from "./io";
+import { minidspFileText } from "./minidsp";
 import { safeName } from "./parts";
 
 const STEPS: { title: string; body: string }[] = [
@@ -57,7 +58,7 @@ export function MiniDspPanel({ profile, design }: { profile: Profile; design: De
 
 function OutputBlock({ o, profile, design }: { o: OutputDef; profile: Profile; design: Design }) {
   const dg = design.digital;
-  const text = minidspText(null, dg.fc, o.kind, dg.align);
+  const text = minidspFileText(dg.fc, o.kind, dg.align);
   const [copied, setCopied] = useState(false);
   const gain = o.n === 1 ? dg.g_woof_dB : 0;
   const file = `MiniDSP_output${o.n}_${o.kind}_${dg.align}_${Math.round(dg.fc)}Hz_${safeName(profile.id)}.txt`;

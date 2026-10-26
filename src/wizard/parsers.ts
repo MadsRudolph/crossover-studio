@@ -54,8 +54,20 @@ export function looksLikeLtspice(text: string): boolean {
   return (data[0] !== undefined && findFreqTable(data[0].toUpperCase()) >= 0) || (data[1] ?? "").trimStart().startsWith("+(");
 }
 
+/** Decodes a text file's bytes like the Rust reader (text::decode): a byte-order mark decides (UTF-8, or
+ *  UTF-16 as Excel's "Unicode text" and PowerShell 5 write it); otherwise UTF-8 when valid, else Windows-1252. */
+export function decodeText(bytes: Uint8Array): string {
+  if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) return new TextDecoder("utf-8").decode(bytes.subarray(3));
+  if (bytes[0] === 0xff && bytes[1] === 0xfe) return new TextDecoder("utf-16le").decode(bytes.subarray(2));
+  if (bytes[0] === 0xfe && bytes[1] === 0xff) return new TextDecoder("utf-16be").decode(bytes.subarray(2));
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
+  catch { return new TextDecoder("windows-1252").decode(bytes); }
+}
+
 /** Parse either format, detected from the content. */
 export function parseText(text: string): { format: TextFormat; table: Table } {
+  // A BOM left in the text would hide the source name (and so whether the table is an admittance).
+  text = text.replace(/^\uFEFF/, "");
   return looksLikeLtspice(text) ? { format: "ltspice", table: parseLtspice(text) } : { format: "csv", table: parseCsv(text) };
 }
 
@@ -234,7 +246,13 @@ export function parseCsv(text: string): Table {
   if (shape.kind === "polar" && !phase) notes.push("No phase column: the phase is taken as zero.");
 
   const t: Table = { f: [], re: [], im: [], header: hasHeader ? first.trim() : named ? named.join(",") : "", notes };
-  for (const [no, line] of rows.slice(hasHeader ? 1 : 0)) {
+  let start = hasHeader ? 1 : 0;
+  // A units row under the header ("Hz, Ohm, Ohm", as some exports write) has no number in it: skip it.
+  if (hasHeader && rows[1] && splitFields(rows[1][1], delim).every(f => parseField(f, decimalComma) === null)) {
+    start = 2;
+    notes.push(`The row "${rows[1][1].trim()}" under the header was read as units and skipped.`);
+  }
+  for (const [no, line] of rows.slice(start)) {
     const fields = splitFields(line, delim);
     const get = (i: number): number => {
       const s = fields[i];

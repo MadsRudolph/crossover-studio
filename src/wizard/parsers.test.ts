@@ -2,7 +2,7 @@
 // The CSVs store f with six significant digits (1044.125 -> 1044.12), hence 1e-5 on frequency.
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ParseError, looksLikeLtspice, parseCsv, parseLtspice, parseText, textToSeries, validateSeries } from "./parsers";
+import { ParseError, decodeText, looksLikeLtspice, parseCsv, parseLtspice, parseText, textToSeries, validateSeries } from "./parsers";
 
 const read = (rel: string) => readFileSync(new URL(`../../fixtures/${rel}`, import.meta.url), "utf8");
 const rel = (a: number, b: number) => Math.abs(a - b) / Math.max(Math.abs(b), 1e-300);
@@ -140,5 +140,37 @@ describe("series", () => {
         try { parseText(s.slice(0, cut)); } catch (e) { expect(e).toBeInstanceOf(ParseError); }
       }
     }
+  });
+});
+
+describe("text encodings from Windows tools", () => {
+  const zi = readFileSync(new URL("../../fixtures/text/Zi_mid.txt", import.meta.url), "utf8");
+  const enc = (s: string) => new TextEncoder().encode(s);
+  it("keeps an admittance table an admittance behind a UTF-8 BOM", () => {
+    const plain = parseText(zi).table, bom = parseText(decodeText(new Uint8Array([0xef, 0xbb, 0xbf, ...enc(zi)]))).table;
+    expect(bom.re[0]).toBe(plain.re[0]);
+    expect(parseText("﻿" + zi).table.notes.join(" ")).toMatch(/Admittance/);
+  });
+  it("reads UTF-16 and Windows-1252 files", () => {
+    const csv = "Frequency [Hz]\tMagnitude [dB]\tPhase [°]\r\n100\t0\t90\r\n200\t6,0206\t0\r\n";
+    const units = [...csv].map(c => c.charCodeAt(0));
+    const le = new Uint8Array([0xff, 0xfe, ...units.flatMap(u => [u & 255, u >> 8])]);
+    const be = new Uint8Array([0xfe, 0xff, ...units.flatMap(u => [u >> 8, u & 255])]);
+    for (const b of [le, be]) {
+      const t = parseCsv(decodeText(b));
+      expect(t.im[0]).toBeCloseTo(1, 12);
+      expect(t.re[1]).toBeCloseTo(2, 4);
+    }
+    const cp = new Uint8Array([...enc("f;dB;Phase ["), 0xb0, ...enc("]\n100;0;90\n200;0;0\n")]);
+    expect(decodeText(cp)).toContain("[°]");
+    expect(parseCsv(decodeText(cp)).im[0]).toBeCloseTo(1, 12);
+  });
+});
+
+describe("CSV units row", () => {
+  it("skips a row of units under the header, like the Rust reader", () => {
+    const t = parseCsv("Frequency,Re,Im\nHz,Ohm,Ohm\n100,6,1\n200,7,2\n");
+    expect(t.f).toEqual([100, 200]);
+    expect(t.notes.join(" ")).toMatch(/units/);
   });
 });

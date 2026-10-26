@@ -9,7 +9,7 @@ import { useStore } from "../state/store";
 import { fmtFreq } from "../ui/format";
 import * as engine from "../engine";
 import { sceneLayout, type CameraPreset } from "./layout";
-import { createMotion } from "./motion";
+import { createMotion, VISUAL_HZ } from "./motion";
 import { excursionCeilingDb, nearestIndex, sampleC, sampleProbe, type ProbeState } from "./physics";
 import { Scene, FOV_DEG, type CameraApi, type FrameStats, type Quality } from "./Scene";
 import { Toolbar } from "./Toolbar";
@@ -92,6 +92,7 @@ export function Viewport3D({ initialPreset = "threeQuarter" }: Viewport3DProps =
 
   const layout = useMemo(() => (profile ? sceneLayout(profile, box) : null), [profile, box]);
   const probe = useProbeState(layout);
+  const probeHz = useStore(s => s.probe);
 
   const motion = useRef(createMotion()).current;
   const camera = useRef<CameraApi>(null);
@@ -196,8 +197,9 @@ export function Viewport3D({ initialPreset = "threeQuarter" }: Viewport3DProps =
         {probe && (
           <span className="v3d-hud-probe">
             <span className="v3d-hud-k">Probe</span>
-            <span className="v3d-hud-v">{fmtFreq(probe.f)}</span>
-            <span className="v3d-hud-k v3d-hud-note">animation slowed to 0.9 Hz</span>
+            {/* the store's probe, as every other readout shows it (probe.f is the nearest measured point) */}
+            <span className="v3d-hud-v">{fmtFreq(probeHz)}</span>
+            {animating && <span className="v3d-hud-k v3d-hud-note">animation slowed to {VISUAL_HZ} Hz</span>}
           </span>
         )}
         {ui.xray && layout.vents.some(v => v.open) && (

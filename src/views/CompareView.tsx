@@ -4,7 +4,7 @@
 import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Camera, Check as CheckIcon, GitCompareArrows, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { StackedPlots, type PlotSeries } from "../charts";
-import { score } from "../engine";
+import { assess, score } from "../engine";
 import { Button, EmptyState, IconButton, Menu, StatusDot, toast, fmtFreq } from "../ui";
 import { snapshotNow } from "../ui/shell/commands";
 import { create } from "zustand";
@@ -38,6 +38,8 @@ export function CompareView() {
   const angleChoice = useStore(s => s.ui.angle);
   const sel = useCompare();
   const [probe, setProbe] = useProbe();
+  // a snapshot's results may come from an older profile fit: judge them defensively
+  const verdictOf = (e: Entry) => { try { return Math.round(assess(prep, e.design, e.results).score); } catch { return null; } };
   const [ref, size] = useSize<HTMLDivElement>();
   const angle = angleChoice !== "both" && results.angles[angleChoice] ? angleChoice : "0";
 
@@ -101,7 +103,7 @@ export function CompareView() {
                 description="Press S (or the button above) before trying something, then compare the two designs here." />
             )}
           </Card>
-          {A.id !== B.id ? <MetricsTable a={A} b={B} prepScore={(d: Design) => score(prep, d)} /> : (
+          {A.id !== B.id ? <MetricsTable a={A} b={B} prepScore={(d: Design) => score(prep, d)} verdict={verdictOf} /> : (
             <Card title="Metrics">
               <p className="vw-muted vw-pad">A and B are the same design. {snapshots.length ? "Mark another row as A or B" : "Take a snapshot, change something, and the differences appear here"}.</p>
             </Card>
@@ -192,14 +194,25 @@ function SnapshotRow({ entry, isA, isB }: { entry: Entry; isA: boolean; isB: boo
 }
 
 // ---------------------------------------------------------------- the numbers
-function MetricsTable({ a, b, prepScore }: { a: Entry; b: Entry; prepScore(d: Design): number }) {
+/** B − A with its unit: a signed difference, whole hertz above 10 Hz and one decimal below. */
+export function fmtDelta(d: number, unit: string, digits: number): string {
+  const n = unit === "Hz" ? (Math.abs(d) >= 10 ? 0 : 1) : digits;
+  const mag = Math.abs(d).toFixed(n);
+  const sign = Number(mag) === 0 ? "±" : d > 0 ? "+" : "−";
+  return `${sign}${mag}${unit ? " " + unit : ""}`;
+}
+
+function MetricsTable({ a, b, prepScore, verdict }: { a: Entry; b: Entry; prepScore(d: Design): number; verdict(e: Entry): number | null }) {
   const scores = useMemo(() => [prepScore(a.design), prepScore(b.design)], [a.design, b.design]); // eslint-disable-line react-hooks/exhaustive-deps
+  const verdicts = useMemo(() => [verdict(a), verdict(b)], [a.results, b.results]); // eslint-disable-line react-hooks/exhaustive-deps
   const fmt = (v: number | null, unit: string, digits: number) =>
     v === null || !Number.isFinite(v) ? "—" : unit === "Hz" ? fmtFreq(v) : `${v.toFixed(digits)}${unit ? " " + unit : ""}`;
   const tone = (d: number, better: -1 | 0 | 1, digits: number) =>
     better === 0 || Math.abs(d) < 0.5 * 10 ** -digits ? "" : d * better > 0 ? " is-good" : " is-bad";
   const rows = [
-    { id: "score", label: "Optimiser score", unit: "", better: -1 as const, digits: 3, va: scores[0], vb: scores[1] },
+    // the 0-100 score the Verdict view and the status bar show, then the optimiser's own cost (lower is better)
+    { id: "verdict", label: "Verdict score", unit: "", better: 1 as const, digits: 0, va: verdicts[0], vb: verdicts[1] },
+    { id: "score", label: "Optimiser cost", unit: "", better: -1 as const, digits: 3, va: scores[0], vb: scores[1] },
     ...METRIC_ROWS.map(r => ({ id: r.id, label: r.label, unit: r.unit, better: r.better, digits: r.digits, va: r.get(a.results), vb: r.get(b.results) })),
   ];
   const checksA = new Map(a.results.checks.map(c => [c.id, c]));
@@ -217,7 +230,7 @@ function MetricsTable({ a, b, prepScore }: { a: Entry; b: Entry; prepScore(d: De
                 <td className="mono">{fmt(r.va, r.unit, r.digits)}</td>
                 <td className="mono">{fmt(r.vb, r.unit, r.digits)}</td>
                 <td className={"mono" + (Number.isFinite(d) ? tone(d, r.better, r.digits) : "")}>
-                  {Number.isFinite(d) ? `${d > 0 ? "+" : d < 0 ? "−" : "±"}${Math.abs(d).toFixed(r.unit === "Hz" ? 0 : r.digits)}` : "—"}
+                  {Number.isFinite(d) ? fmtDelta(d, r.unit, r.digits) : "—"}
                 </td>
               </tr>
             );

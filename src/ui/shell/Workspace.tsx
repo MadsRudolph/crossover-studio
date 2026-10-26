@@ -9,6 +9,7 @@ import { EmptyState } from "../EmptyState";
 import { Segmented } from "../Segmented";
 import { Tabs } from "../Tabs";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { viewKey } from "./viewKeys";
 
 /** Which header tools a view uses: the trace toggles and/or the measurement-angle choice. Compare draws
  *  only system sums (no traces); Directivity always draws on and off axis together (no angle choice). */
@@ -37,7 +38,7 @@ export function Workspace() {
           idBase="cs-view"
           value={def.id}
           onChange={setView}
-          items={VIEWS.map((v, i) => ({ id: v.id, label: v.title, icon: v.icon, shortcut: i < 9 ? String(i + 1) : undefined }))}
+          items={VIEWS.map((v, i) => ({ id: v.id, label: v.title, icon: v.icon, shortcut: viewKey(i) }))}
         />
         <div className="cs-ws-tools">{VIEW_TOOLS[def.id] && results && <CurveTools {...VIEW_TOOLS[def.id]!} />}</div>
       </div>

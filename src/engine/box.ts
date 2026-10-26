@@ -307,9 +307,13 @@ export function fitBox(profile: Profile): BoxFitEx {
   if (!W.free && !W.closed) throw new Error("the woofer box fit needs the woofer impedance in free air or in the closed box (Lab D)");
   const closedBox = (RAB: number) => boxElements(g, { RAB });
 
-  // ---- starting point: f_s, Q from the free-air peak, V_AS from the shift to the closed-box peak
-  const pk = (W.free && estimatePeak(W.free, g.RE)) || { fs: 25, Qms: 5, Qes: 0.5 };
+  // ---- starting point: f_s, Q from the free-air peak, V_AS from the shift to the closed-box peak.
+  // Without a usable free-air peak, the closed-box peak with V_AS = V_B: f_s and both Qs are then the
+  // closed-box values over sqrt(1 + V_AS/V_B) = sqrt 2.
   const pkC = W.closed ? estimatePeak(W.closed, g.RE) : null;
+  const pk = (W.free && estimatePeak(W.free, g.RE))
+    || (pkC && { fs: pkC.fs / Math.SQRT2, Qms: pkC.Qms / Math.SQRT2, Qes: pkC.Qes / Math.SQRT2 })
+    || { fs: 25, Qms: 5, Qes: 0.5 };
   let Vas: number;
   if (W.free && pkC && pkC.fs > pk.fs * 1.05) Vas = g.VB * ((pkC.fs / pk.fs) ** 2 - 1);
   else { Vas = g.VB; }
@@ -327,9 +331,10 @@ export function fitBox(profile: Profile): BoxFitEx {
     return e;
   };
   const configs = W.vented.filter(m => m.vents.length > 0 && m.z && m.z.f.length > 0);
-  // Free air alone cannot pin C_MS (V_AS): with no closed or vented curve to do it, hold C_MS at
-  // V_AS = V_B and fit only Bl, M_MD, R_MS and L_E, instead of letting it drift anywhere.
-  const holdCms = !!cf && !cc && !configs.length;
+  // One curve alone cannot pin C_MS (V_AS): free air leaves it free, and in the closed box only C_MS in
+  // series with C_AB counts, so it drifts to infinity (f_s -> 0 Hz). With no second curve and no vented
+  // curve to do it, hold C_MS at V_AS = V_B and fit only Bl, M_MD, R_MS and L_E (and R_AB).
+  const holdCms = !cf !== !cc && !configs.length;
   const CMS = 2;
   const widen = (z: number[]) => [...z.slice(0, CMS), x0[CMS], ...z.slice(CMS)];
   let x: number[];
@@ -345,7 +350,8 @@ export function fitBox(profile: Profile): BoxFitEx {
   let drv = toDrv(x.slice(0, 5).map(Math.exp));
   const RAB = cc ? Math.exp(x[5]) : 0;
   const identified = !!(cf && cc);
-  if (!cf) notes.push("No free-air curve: the driver was fitted to the closed box alone, so V_AS rests on the starting estimate.");
+  if (!cf && !configs.length) notes.push("No free-air or vented-box curve: the driver was fitted to the closed box alone with V_AS held at the box volume, so a vented-box prediction is rough. Import the free-air curve.");
+  else if (!cf) notes.push("No free-air curve: the driver was fitted to the closed box and the vented-box curves.");
   else if (!cc && configs.length) notes.push("No closed-box curve: free air alone cannot separate Bl from the moving mass and V_AS.");
 
   // ---- 3: vented configurations
@@ -386,7 +392,7 @@ export function fitBox(profile: Profile): BoxFitEx {
     QL = Math.exp(y[0]); QP = Math.exp(y[1]);
     masses = configs.map((_, j) => Math.exp(y[2 + j]));
     ventCost = cost3(y);
-  } else if (holdCms) {
+  } else if (holdCms && cf) {
     notes.push("No closed-box or vented curve: V_AS is assumed equal to the box volume, so the bass prediction is rough. Import a closed-box curve.");
   }
 
@@ -438,6 +444,10 @@ export interface BoxConfig {
   label: string;
   /** Radius used for the vent near field (the equivalent of all open vents). */
   ap: number;
+  /** Air speed in the fastest open vent over the mean speed (total U_P over total area); 1 for one
+   *  vent. Vents in parallel share the box pressure, so each carries U_i ~ 1/M_AP,i and the air in the
+   *  shorter (lighter per area) one moves faster. Missing = 1. */
+  ventSpeedFactor?: number;
 }
 
 /** Effective vent mass of the primary vent at length L: linear interpolation of the fitted masses
@@ -459,16 +469,22 @@ export function mapAt(fit: BoxFit, L: number): number {
  *  vents the box really has: a setting that opens more vents than exist falls back to what does. */
 export function boxConfig(fit: BoxFit, box: BoxDesign, ventCount = Infinity): BoxConfig {
   const fill = box.fill ?? 1;
+  // a design file can carry anything: catch what would turn the box model into NaN
+  if (!(fill > 0 && Number.isFinite(fill))) throw new Error(`the box filling factor must be a positive number (got ${fill})`);
   if (ventCount < 1 && (box.mode === "one" || box.mode === "two")) box = { ...box, mode: "plugged" };
   else if (ventCount < 2 && box.mode === "two") box = { ...box, mode: "one" };
   if (box.mode === "plugged") return { MAP: null, fill, label: "vents plugged (closed box)", ap: fit.AP };
   if (box.mode === "one") return { MAP: mapAt(fit, box.L), fill, label: `one vent, L = ${(box.L * 1e3).toFixed(0)} mm`, ap: fit.AP };
   if (box.mode === "two") {
+    if (!(box.a2 > 0 && box.L2 >= 0)) throw new Error(`the second vent needs a positive diameter and a length (got ⌀ ${box.a2 * 2e3} mm, ${box.L2 * 1e3} mm)`);
     const m1 = mapAt(fit, box.L), cal = m1 / tubeMass(box.L, fit.AP, fit.rho), m2 = cal * tubeMass(box.L2, box.a2, fit.rho);
+    const A1 = fit.AP ** 2, A2 = box.a2 ** 2, share1 = m2 / (m1 + m2);   // U_1 / U_total
     return { MAP: m1 * m2 / (m1 + m2), fill, ap: Math.hypot(fit.AP, box.a2),
+             ventSpeedFactor: Math.max(share1 * (A1 + A2) / A1, (1 - share1) * (A1 + A2) / A2),
              label: `two vents (L ${(box.L * 1e3).toFixed(0)} + ${(box.L2 * 1e3).toFixed(0)} mm, second ⌀ ${(box.a2 * 2e3).toFixed(0)} mm)` };
   }
-  return { MAP: box.MAP ?? null, fill, label: box.label || "custom", ap: fit.AP };
+  if (box.MAP != null && !(box.MAP > 0 && Number.isFinite(box.MAP))) throw new Error(`the vent mass M_AP must be positive (got ${box.MAP} kg/m⁴)`);
+  return { MAP: box.MAP || null, fill, label: box.label || "custom", ap: fit.AP };
 }
 
 /** Box elements of a configuration (closed box when MAP is null). */

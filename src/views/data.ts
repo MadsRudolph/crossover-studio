@@ -238,12 +238,28 @@ export function unwrapDeg(y: Float64Array): Float64Array {
   return out;
 }
 
-/** A y range in whole multiples of 90° around every finite value, at least ±180°. */
+/** `y` shifted by the whole turn (360° k) that brings it closest to `ref` where both are drawn (median
+ *  difference), so independently unwrapped curves sit on top of each other where they overlap. */
+export function alignTurns(y: Float64Array, ref: ArrayLike<number>): Float64Array {
+  const d: number[] = [];
+  for (let i = 0; i < y.length; i++) if (Number.isFinite(y[i]) && Number.isFinite(ref[i])) d.push(y[i] - ref[i]);
+  if (!d.length) return y;
+  d.sort((a, b) => a - b);
+  const k = Math.round(d[d.length >> 1] / 360);
+  return k ? y.map(v => v - 360 * k) : y;
+}
+
+/** A y range in whole multiples of 90° around every finite value, at least 360° tall (±180° when
+ *  there is nothing to show), so a curve that has turned far negative does not leave the top empty. */
 export function phaseRange(series: { y: ArrayLike<number> }[]): [number, number] {
-  let lo = -180, hi = 180;
+  let lo = Infinity, hi = -Infinity;
   for (const s of series) {
     const y = s.y;
     for (let i = 0; i < y.length; i++) if (Number.isFinite(y[i])) { lo = Math.min(lo, y[i]); hi = Math.max(hi, y[i]); }
   }
-  return [Math.floor(lo / 90) * 90, Math.ceil(hi / 90) * 90];
+  if (lo > hi) return [-180, 180];
+  lo = Math.floor(lo / 90) * 90; hi = Math.ceil(hi / 90) * 90;
+  const short = 360 - (hi - lo);
+  if (short > 0) { const below = Math.ceil(short / 180) * 90; lo -= below; hi += short - below; }
+  return [lo, hi];
 }

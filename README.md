@@ -15,10 +15,37 @@ in the course basket.
 
 ![System view](docs/screenshots/system-dark.png)
 
+## What it does
+
+- **System:** the loudspeaker in 3D at real size, with cones and vent air moving at the probe frequency.
+- **Verdict:** a score out of 100 with the reason behind every criterion, and "Try this" changes tested on your
+  data.
+- **Response, Phase, Impedance, Filters, Directivity:** every curve of the design, with a Monte Carlo tolerance
+  band and a shared probe.
+- **Box:** the Thiele–Small fit from your Lab D impedances, and SPL, cone excursion and vent air speed for the
+  box you design.
+- **Compare:** snapshots, an A/B overlay and a table of what changed.
+- **Listen:** hear the design before you build it. Pink noise, crossover-band noise, a tone, a sweep or your
+  own track plays through the measured drivers and your crossover in real time. Solo, mute or invert any unit,
+  and switch between the design, a snapshot and a flat reference.
+- **As built:** import the Task 3 anechoic measurement of the finished speaker. It is overlaid on the
+  prediction with the vents plugged, and a fault finder ranks the build mistakes that would explain the
+  difference (inverted unit, a part one basket step off, swapped outputs, …).
+- **Export:** MiniDSP biquads, a ready-to-run LTspice folder, the parts list, `.xstudio` design files, and a
+  **report pack**: a LaTeX section with booktabs tables and pgfplots figures, the same as Markdown, and a sheet
+  of quiz numbers.
+- **Optimiser:** searches the course basket values for the flattest response that keeps both crossings inside
+  their windows.
+
 | | |
 |---|---|
-| ![Response view](docs/screenshots/response-dark.png) | ![Box view](docs/screenshots/box-dark.png) |
-| ![Import wizard](docs/screenshots/import-dark.png) | ![Export sheet](docs/screenshots/export-dark.png) |
+| ![Verdict view](docs/screenshots/verdict-dark.png) | ![Response view](docs/screenshots/response-dark.png) |
+| ![Listen view](docs/screenshots/listen-dark.png) | ![As built view with the fault finder](docs/screenshots/built-dark.png) |
+| ![Box view](docs/screenshots/box-dark.png) | ![Compare view](docs/screenshots/compare-dark.png) |
+| ![Report export](docs/screenshots/report-dark.png) | ![Import wizard](docs/screenshots/import-dark.png) |
+
+Every view also has a light-theme screenshot in [docs/screenshots](docs/screenshots). The plans for the next
+features are in the [roadmap](docs/ROADMAP.md).
 
 ## Download and install
 
@@ -49,7 +76,7 @@ it to learn the workflow before you import your own data.
 5. **Check & export:** click any amber or red check to jump to the control that fixes it. You can also press
    **O** to let the optimiser search the basket values for you.
 
-Press **Ctrl+K** for the command palette. Keys **1–9** switch views, **S** takes a snapshot to compare against,
+Press **Ctrl+K** for the command palette. Keys **1–9** and **0** switch views, **S** takes a snapshot to compare against,
 and **E** opens the export.
 
 ## Importing your group's measurements
@@ -73,6 +100,11 @@ of the source files, so you can open it on any machine or zip it for your group.
 magnitude/dB with phase, as REW exports it). A `.mat` file can hold several variables, or a matrix with one
 column per unit. In the Lab E system files, `H(:,1:3)` is woofer, midrange and tweeter in that order. You can
 pick the frequency and data variables yourself if the automatic guess is wrong.
+
+**Whole folders.** The easiest way is to add your whole `Lab D/data` and `Lab E/data` folders (**Add a
+folder…**, or drop the folders on the wizard). For each role the wizard takes the run without a suffix:
+repeats (`_r2`, `_r3`) and rejected runs (`_bad`) rank lower, so rename a run to `*_bad` to keep it out. Text
+files may be UTF-8, UTF-16 or Windows-1252, and a CSV may have a units row under its header.
 
 **Naming tips.** The wizard reads file names, variable names and the `note`/`tag` text the lab scripts save.
 Names like these get assigned without any clicks:
@@ -98,6 +130,7 @@ can also be written by hand or generated from a script.
   to the MiniDSP and LTspice, listening-test tips).
 - [Profile format](docs/PROFILE_FORMAT.md): `profile.json`, the file that holds one group's system.
 - [Design brief](docs/DESIGN.md): the visual and interaction rules the app follows.
+- [Roadmap](docs/ROADMAP.md): what is planned next, ranked by value to the project groups.
 
 ## How we know the numbers are right
 
@@ -143,6 +176,7 @@ npx tsc --noEmit -p .                          # types
 npx vitest run                                 # engine, exporters and UI logic
 (cd src-tauri && cargo test)                   # file readers and profiles
 python3 scripts/verify_ltspice.py              # exported schematic in LTspice under wine (after vitest)
+python3 scripts/verify_report.py               # report CSVs, and main_preview.tex through tectonic (after vitest)
 ```
 
 `npm run dev` runs the interface in a plain browser. The bundled profile works there, but opening and saving
@@ -157,12 +191,14 @@ AppImage, `.deb`, NSIS `.exe` and `.msi` attached (`.github/workflows/release.ym
 src/engine/      the acoustic model: box fit, digital and passive filters, sum, checks, optimiser
 src/state/       the single app store (Zustand)
 src/ui/          design system and application shell
-src/views/       System, Response, Phase, Impedance, Filters, Box, Directivity, Compare
+src/views/       System, Verdict, Response, Phase, Impedance, Filters, Box, Directivity, Compare, Listen, As built
+src/listen/      impulse responses, test signals and the Web Audio player for Listen
+src/asbuilt/     measured-against-predicted analysis and the build-fault finder
 src/viewport3d/  the 3D loudspeaker
 src/charts/      the canvas plotting library
 src/schematic/   the live signal chain
 src/wizard/      measurement import
-src/export/      MiniDSP, LTspice, parts list and design files
+src/export/      MiniDSP, LTspice, parts list, design files and the report pack
 src-tauri/       Rust backend: .mat / text readers, profile storage
 profiles/        the bundled example profile
 fixtures/        reference data and results the tests check against

@@ -8,7 +8,7 @@ import type { Profile, Series, UnitId } from "../types";
 import { compute, fitBox, prepare, type BoxFitEx } from "../engine";
 import { BUNDLED_PROFILES, defaultDesign, useStore } from "../state/store";
 import * as platform from "../platform";
-import { parseText, validateSeries } from "./parsers";
+import { decodeText, parseText, validateSeries } from "./parsers";
 import { autoAssign, choiceKey, ventKey, type Assignment, type Choice, type RoleKey, type VentConfig, type WizardFile } from "./roles";
 import { buildProfile, draftFromProfile, estimatePhaseRef, estimateResonance, isValidId, slugify,
          type DraftSystem, type PhaseRefEstimate } from "./build";
@@ -53,7 +53,9 @@ interface WizardState {
 
   reset(): void;
   setStep(step: number): void;
-  addPaths(paths: string[]): Promise<void>;
+  /** Adds files, and every measurement file inside a folder. Returns the names of folder files left out
+   *  because they hold no measurement (a README.txt, a MiniDSP coefficient file). */
+  addPaths(paths: string[]): Promise<{ skipped: string[] }>;
   addBrowserFiles(files: File[]): Promise<void>;
   loadExampleFiles(): Promise<void>;
   removeFile(id: string): void;
@@ -144,10 +146,14 @@ export const useWizard = create<WizardState>()((set, get) => {
       set({ step: s, maxVisited: Math.max(get().maxVisited, s) });
     },
 
-    async addPaths(paths) {
+    async addPaths(given) {
+      // a dropped or chosen folder stands for the measurement files inside it
+      let paths = given;
+      try { paths = await platform.expandFolders(given); } catch { /* older backend: add the paths as given */ }
+      const fromFolder = new Set(paths.filter(p => !given.includes(p)));
       const known = new Set(get().files.map(f => f.id));
-      const fresh = paths.filter(p => !known.has(p));
-      if (!fresh.length) return;
+      const fresh = [...new Set(paths)].filter(p => !known.has(p));
+      if (!fresh.length) return { skipped: [] };
       set({ files: [...get().files, ...fresh.map((p): WizardFile => ({ id: p, path: p, name: baseName(p), format: guessFormat(p), status: "reading" }))] });
       await Promise.all(fresh.map(async path => {
         let patch: Partial<WizardFile>;
@@ -160,7 +166,11 @@ export const useWizard = create<WizardState>()((set, get) => {
         }
         set({ files: get().files.map(f => f.id === path ? { ...f, ...patch } : f) });
       }));
+      // files found in a folder that turn out not to be measurements are left out rather than listed as errors
+      const skipped = get().files.filter(f => fromFolder.has(f.id) && f.status === "error");
+      if (skipped.length) set({ files: get().files.filter(f => !skipped.includes(f)) });
       reassign();
+      return { skipped: skipped.map(f => f.name) };
     },
 
     async addBrowserFiles(list) {
@@ -173,7 +183,7 @@ export const useWizard = create<WizardState>()((set, get) => {
           return { id, name: file.name, format: "mat", status: "error",
                    error: "MATLAB .mat files are read by the desktop app. In the browser preview, use Matlab2LTspice .txt or CSV files." };
         try {
-          const { format, table } = parseText(await file.text());
+          const { format, table } = parseText(decodeText(new Uint8Array(await file.arrayBuffer())));
           return { id, name: file.name, format, status: "ready", table };
         } catch (e) {
           return { id, name: file.name, format: ext === "csv" ? "csv" : ext === "txt" ? "ltspice" : "unknown", status: "error", error: message(e) };

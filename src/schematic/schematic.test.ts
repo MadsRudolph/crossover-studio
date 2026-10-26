@@ -168,3 +168,17 @@ describe("live values", () => {
     expect(partImpedance("C", 1e-6, 1000)[1]).toBeCloseTo(-159.155, 2);
   });
 });
+
+describe("tag placement", () => {
+  it("keeps the channel-2 level left of the passive board, clear of its edge", () => {
+    const design = defaultDesign(BUNDLED_PROFILES[0]);
+    for (const mode of ["full", "compact"] as const) {
+      const l = layoutChain(design, mode);
+      const hp = l.tags.find(t => t.signal === "hp")!;
+      // about 7 mono characters ("−0.1 dB") at ~6.6 px must end before the board's left edge
+      expect(hp.x + 7 * 6.6).toBeLessThan(l.board.x);
+      // the driver-terminal levels end inside the board's right edge
+      for (const t of l.tags.filter(t => t.signal.endsWith(".term"))) expect(t.x).toBeLessThan(l.board.x + l.board.w);
+    }
+  });
+});

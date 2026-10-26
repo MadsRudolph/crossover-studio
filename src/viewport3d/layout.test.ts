@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { BoxDesign, Profile } from "../types";
 import profileJson from "../../profiles/system-d-group10/profile.json";
-import { frameDistance, orbitPoint, PRESET_DIRECTIONS, sceneLayout } from "./layout";
+import { frameDistance, orbitPoint, PRESET_DIRECTIONS, sceneLayout, spreadLabels } from "./layout";
 
 const profile = profileJson as unknown as Profile;
 const box = (patch: Partial<BoxDesign> = {}): BoxDesign => ({ mode: "one", L: 0.16, L2: 0.2, a2: 0.025, fill: 1, ...patch });
@@ -62,5 +62,25 @@ describe("camera helpers", () => {
     expect(f[2]).toBeGreaterThan(1.9);
     const s = orbitPoint([0, 0, 0], 2, PRESET_DIRECTIONS.side.azimuth, PRESET_DIRECTIONS.side.polar);
     expect(s[0]).toBeGreaterThan(1.9);
+  });
+});
+
+describe("callout spreading", () => {
+  it("pushes stacked callouts apart and keeps their order", () => {
+    const pins = [{ x: 100, y: 205 }, { x: 110, y: 200 }, { x: 600, y: 200 }];
+    spreadLabels(pins);
+    expect(pins[1].y).toBe(200);
+    expect(pins[0].y).toBe(230);
+    expect(pins[2].y).toBe(200); // far to the side: left alone
+  });
+  it("leaves callouts that already clear each other", () => {
+    const pins = [{ x: 0, y: 0 }, { x: 0, y: 40 }];
+    spreadLabels(pins);
+    expect(pins.map(p => p.y)).toEqual([0, 40]);
+  });
+  it("moves a stack out of the bottom strip, keeping the gaps", () => {
+    const pins = [{ x: 0, y: 380 }, { x: 0, y: 390 }];
+    spreadLabels(pins, 400);
+    expect(pins.map(p => p.y)).toEqual([370, 400]);
   });
 });

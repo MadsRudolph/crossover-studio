@@ -2,7 +2,7 @@
 //
 // Written from the MathWorks "MAT-File Format" specification. It reads what a lab group's `save`
 // produces: numeric arrays (any class, real or complex, converted to f64), char arrays, logicals and
-// structs (whose fields are exposed as "var.field" variables). Cell arrays are listed but not read;
+// structs (whose fields are exposed as "var.field" variables) and cell arrays (elements as "var{k}");
 // sparse arrays, objects and opaque classes (MATLAB `datetime`, `string`, ...) are listed and skipped,
 // so a file that also holds a timestamp still opens. v7.3 files are HDF5 and get a clear error.
 //
@@ -163,6 +163,22 @@ pub fn looks_like_mat(bytes: &[u8]) -> bool {
     }
 }
 
+/// True when the bytes start like a Level 4 MAT-file (`save -v4`): no text header, but a 20-byte matrix
+/// header whose type code MOPT (M = byte order 0/1, O = 0, P = precision 0..5, T = 0..2), imaginary flag (0/1)
+/// and name length fit, followed by the NUL-terminated name.
+fn looks_like_level4(bytes: &[u8]) -> bool {
+    let Some(head) = bytes.get(..20) else { return false };
+    [false, true].into_iter().any(|big| {
+        let w = |i: usize| {
+            let a = [head[i], head[i + 1], head[i + 2], head[i + 3]];
+            if big { u32::from_be_bytes(a) } else { u32::from_le_bytes(a) }
+        };
+        let (mopt, imagf, namlen) = (w(0), w(12), w(16) as usize);
+        let (m, o, p, t) = (mopt / 1000, mopt / 100 % 10, mopt / 10 % 10, mopt % 10);
+        m <= 1 && o == 0 && p <= 5 && t <= 2 && imagf <= 1 && (1..=64).contains(&namlen) && bytes.get(19 + namlen) == Some(&0)
+    })
+}
+
 pub fn read_mat_file(path: &Path) -> Result<MatFile> {
     let bytes = std::fs::read(path)?;
     read_mat(&bytes)
@@ -173,7 +189,13 @@ pub fn read_mat(bytes: &[u8]) -> Result<MatFile> {
         return Err(MatError::V73);
     }
     if bytes.len() < 128 {
-        return Err(if bytes.starts_with(b"MATLAB") { MatError::Corrupt("header shorter than 128 bytes".into()) } else { MatError::NotMat });
+        return Err(if bytes.starts_with(b"MATLAB") {
+            MatError::Corrupt("header shorter than 128 bytes".into())
+        } else if looks_like_level4(bytes) {
+            MatError::Level4
+        } else {
+            MatError::NotMat
+        });
     }
     let big = match &bytes[126..128] {
         b"IM" => false,
@@ -182,9 +204,7 @@ pub fn read_mat(bytes: &[u8]) -> Result<MatFile> {
             if bytes.starts_with(b"MATLAB") {
                 return corrupt("unknown byte-order mark in the header");
             }
-            // A Level 4 file has no text header; it starts with a small type code (MOPT, at most 4052).
-            let first = u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
-            return Err(if first <= 4052 { MatError::Level4 } else { MatError::NotMat });
+            return Err(if looks_like_level4(bytes) { MatError::Level4 } else { MatError::NotMat });
         }
     };
     let description = String::from_utf8_lossy(&bytes[..116]).trim_end_matches(['\0', ' ']).trim().to_string();
@@ -490,7 +510,26 @@ fn parse_matrix(data: &[u8], big: bool, forced_name: Option<String>, depth: usiz
             }
             out.push(MatVar { name, class: cls, dims, complex, value: MatValue::Numeric { re, im } });
         }
-        // Cells, sparse arrays, function handles: listed, not read.
+        // A cell is listed, and its elements are read as "var{k}" (1-based, column-major as in MATLAB), so a
+        // label cell such as Lab E's units = {'woofer','midrange','tweeter'} reaches the import wizard.
+        MX_CELL => {
+            out.push(MatVar { name: name.clone(), class: cls, dims: dims.clone(), complex: false, value: MatValue::Skipped });
+            if depth >= MAX_DEPTH {
+                return Ok(());
+            }
+            let n = numel.ok_or_else(|| MatError::Corrupt("cell dimensions overflow".into()))?;
+            for k in 0..n {
+                if cur.remaining() < 8 {
+                    return corrupt(format!("cell {name} has fewer elements than its size says"));
+                }
+                let (ety, edata) = cur.element()?;
+                if ety != MI_MATRIX {
+                    return corrupt("cell element is not an array");
+                }
+                parse_matrix(edata, big, Some(format!("{name}{{{}}}", k + 1)), depth + 1, out)?;
+            }
+        }
+        // Sparse arrays, function handles: listed, not read.
         _ => out.push(MatVar { name, class: cls, dims, complex, value: MatValue::Skipped }),
     }
     Ok(())
@@ -642,6 +681,20 @@ mod tests {
         assert_eq!(v.dims, vec![2, 1]);
         assert!(v.complex);
         assert_eq!(v.value, MatValue::Numeric { re: vec![7.0, 9.0], im: Some(vec![-1.0, 3.0]) });
+    }
+
+    #[test]
+    fn cell_elements_are_listed() {
+        let f = read_mat_file(&fixture("mat/labE_system_0.mat")).unwrap();
+        let labels: Vec<String> = (1..=3)
+            .map(|k| match &f.get(&format!("units{{{k}}}")).unwrap_or_else(|| panic!("units{{{k}}} in {:?}", listing(&f))).value {
+                MatValue::Text(t) => t.clone(),
+                v => panic!("{v:?}"),
+            })
+            .collect();
+        assert_eq!(labels.len(), 3);
+        assert_eq!(f.get("units").unwrap().class, "cell");
+        eprintln!("units = {labels:?}");
     }
 
     #[test]

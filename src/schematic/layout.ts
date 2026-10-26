@@ -191,7 +191,8 @@ export function layoutChain(design: Design, mode: Mode): ChainLayout {
   wire("amp2.out", [[ampOut, midY], [busX, midY]], "neutral", "hp");
   wire("bus", [[busX, midY], [busX, twY]], "neutral", "hp");
   junctions.push({ x: busX, y: midY, tone: "neutral" });
-  tags.push({ key: "tag.hp", signal: "hp", x: ampOut + 4, y: midY + m.termTagDy, anchor: "start", tone: "neutral" });
+  // under the amplifier, not after it: there the text ran across the passive board's left edge
+  tags.push({ key: "tag.hp", signal: "hp", x: ampX - 2, y: midY + m.termTagDy + m.ampW / 2, anchor: "start", tone: "neutral" });
 
   const branches: BranchLayout[] = [];
   // x = where the last part slot ends; clear = how far right the speaker must sit so labels and tags do not collide
@@ -257,7 +258,7 @@ export function layoutChain(design: Design, mode: Mode): ChainLayout {
   tags.push({ key: "tag.woof", signal: "woof", x: ampOut + 4, y: woofY + m.termTagDy, anchor: "start", tone: "woof" });
   for (const [unit, y] of [["mid", midY], ["tw", twY]] as const) {
     wire(`${unit}.run`, [[ends[unit].x, y], [spkX, y]], unit, `${unit}.term`);
-    tags.push({ key: `tag.${unit}.term`, signal: `${unit}.term`, x: spkX - 6, y: y + m.termTagDy, anchor: "end", tone: unit });
+    tags.push({ key: `tag.${unit}.term`, signal: `${unit}.term`, x: spkX - 20, y: y + m.termTagDy, anchor: "end", tone: unit }); // inside the board's edge (spkX - 14)
   }
   const speakers: ChainLayout["speakers"] = [
     { unit: "woof", x: spkX, y: woofY }, { unit: "mid", x: spkX, y: midY }, { unit: "tw", x: spkX, y: twY },

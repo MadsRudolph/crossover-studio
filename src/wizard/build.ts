@@ -20,7 +20,8 @@ export function draftFromProfile(p: Profile): DraftSystem {
 
 /** Folder-safe id, the rule the Rust side enforces: [A-Za-z0-9._-], at most 64 chars, not starting with '.'. */
 export function slugify(name: string): string {
-  const s = name.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase()
+  const s = name.replace(/[øØæÆœŒßđĐłŁ]/g, c => ({ ø: "o", Ø: "o", æ: "ae", Æ: "ae", œ: "oe", Œ: "oe", ß: "ss", đ: "d", Đ: "d", ł: "l", Ł: "l" })[c]!)
+    .normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase()
     .replace(/[^a-z0-9._-]+/g, "-").replace(/-+/g, "-").replace(/^[-.]+|-+$/g, "").slice(0, 64).replace(/-+$/, "");
   return s || "my-system";
 }

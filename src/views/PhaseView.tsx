@@ -9,7 +9,7 @@ import { Segmented, fmtFreq } from "../ui";
 import { useStore } from "../state/store";
 import type { AngleResult, CArray, UnitId } from "../types";
 import { Card, ViewHeader, crossoverLines, fmtSigned, splitHeights, useProbe, useSize } from "./common";
-import { TRACE_META, TRACES, nearest, phaseRange, shownAngles, summingGainDb, unwrapDeg } from "./data";
+import { TRACE_META, TRACES, alignTurns, nearest, phaseRange, shownAngles, summingGainDb, unwrapDeg } from "./data";
 
 const ANGLE_DASH: number[][] = [[], [6, 4]];
 
@@ -53,15 +53,21 @@ export function PhaseView() {
   const [mode, setModeState] = useState<PhaseMode>(lastMode);
   const setMode = (v: PhaseMode) => { lastMode = v; setModeState(v); };
 
-  const phase = useMemo<PlotSeries[]>(() => angles.flatMap((a, k) => TRACES.filter(u => ui.visible[u] && !(mode === "relative" && u === "sum")).map(u => {
+  const phase = useMemo<PlotSeries[]>(() => angles.flatMap((a, k) => {
     const out = results.angles[a];
+    // each unit is unwrapped on its own, then moved by whole turns onto the sum where they overlap;
+    // otherwise a unit that starts in its noisy stop band can land 360° away from the sum it builds
+    const sumUnwrapped = unwrapDeg(displayPhaseDeg(prep, out.sum, out.sum));
+    return TRACES.filter(u => ui.visible[u] && !(mode === "relative" && u === "sum")).map(u => {
     const deg = mode === "relative" ? relativeDeg(prep, out[u], out.sum) : displayPhaseDeg(prep, out[u], out.sum);
     return {
       id: `${u}@${a}`, label: TRACE_META[u].name + (angles.length > 1 ? ` · ${a}°` : ""), x: results.f,
-      y: mode === "unwrapped" ? unwrapDeg(deg) : deg, color: TRACE_META[u].color, wrapPhase: mode !== "unwrapped",
+      y: mode === "unwrapped" ? (u === "sum" ? sumUnwrapped : alignTurns(unwrapDeg(deg), sumUnwrapped)) : deg,
+      color: TRACE_META[u].color, wrapPhase: mode !== "unwrapped",
       width: u === "sum" ? 2 : 1.5, dash: ANGLE_DASH[k % 2],
     };
-  })), [prep, results, angles.join(), ui.visible, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+    });
+  }), [prep, results, angles.join(), ui.visible, mode]); // eslint-disable-line react-hooks/exhaustive-deps
   const phaseY: [number, number] = mode === "unwrapped" ? phaseRange(phase) : [-180, 180];
 
   const summing = useMemo<PlotSeries[]>(() => [

@@ -57,6 +57,43 @@ fn is_comment(line: &str) -> bool {
     t.is_empty() || t.starts_with('*') || t.starts_with('#') || t.starts_with('%') || t.starts_with("//") || t.starts_with(';')
 }
 
+/// Decodes a text file's bytes. Windows tools do not all write UTF-8: Notepad and Excel may add a byte-order
+/// mark, Excel's "Unicode text" and PowerShell 5's `Out-File` write UTF-16, and older exports use the
+/// Windows-1252 code page (a "°" in "Phase [°]"). A BOM decides; otherwise UTF-8 when the bytes are valid
+/// UTF-8, else Windows-1252 (whose first 128 codes are ASCII, so numbers read the same either way).
+pub fn decode(bytes: &[u8]) -> String {
+    if let Some(rest) = bytes.strip_prefix(b"\xEF\xBB\xBF") {
+        return String::from_utf8_lossy(rest).into_owned();
+    }
+    let utf16 = |rest: &[u8], big: bool| {
+        let units = rest.as_chunks::<2>().0.iter().map(|&c| if big { u16::from_be_bytes(c) } else { u16::from_le_bytes(c) });
+        char::decode_utf16(units).map(|c| c.unwrap_or(char::REPLACEMENT_CHARACTER)).collect::<String>()
+    };
+    if let Some(rest) = bytes.strip_prefix(b"\xFF\xFE") {
+        return utf16(rest, false);
+    }
+    if let Some(rest) = bytes.strip_prefix(b"\xFE\xFF") {
+        return utf16(rest, true);
+    }
+    match std::str::from_utf8(bytes) {
+        Ok(s) => s.to_string(),
+        Err(_) => bytes.iter().map(|&b| cp1252(b)).collect(),
+    }
+}
+
+/// True when the bytes start with a UTF-16 byte-order mark (such a text file is full of NUL bytes).
+pub fn is_utf16(bytes: &[u8]) -> bool {
+    bytes.starts_with(b"\xFF\xFE") || bytes.starts_with(b"\xFE\xFF")
+}
+
+fn cp1252(b: u8) -> char {
+    const HIGH: [char; 32] = [
+        '€', '\u{81}', '‚', 'ƒ', '„', '…', '†', '‡', 'ˆ', '‰', 'Š', '‹', 'Œ', '\u{8d}', 'Ž', '\u{8f}', '\u{90}', '‘', '’', '“', '”', '•',
+        '–', '—', '˜', '™', 'š', '›', 'œ', '\u{9d}', 'ž', 'Ÿ',
+    ];
+    if (0x80..0xa0).contains(&b) { HIGH[(b - 0x80) as usize] } else { b as char }
+}
+
 /// True when the text is a LTspice FREQ= table rather than a CSV.
 pub fn looks_like_ltspice(text: &str) -> bool {
     let mut data = text.lines().filter(|l| !is_comment(l));
@@ -70,6 +107,8 @@ fn find_freq_table(upper: &str) -> Option<usize> {
 }
 
 pub fn parse_text(text: &str) -> Result<(TextFormat, Table)> {
+    // A BOM left in the text would hide the source name (and so whether the table is an admittance).
+    let text = text.trim_start_matches('\u{feff}');
     if looks_like_ltspice(text) {
         Ok((TextFormat::Ltspice, parse_ltspice(text)?))
     } else {
@@ -343,7 +382,15 @@ pub fn parse_csv(text: &str) -> Result<Table> {
 
     let header = if has_header { first.trim().to_string() } else { named.map(|n| n.join(",")).unwrap_or_default() };
     let mut t = Table { header, notes, ..Default::default() };
-    let start = if has_header { 1 } else { 0 };
+    let mut start = if has_header { 1 } else { 0 };
+    // A units row under the header ("Hz, Ohm, Ohm", as some exports write) has no number in it: skip it.
+    if has_header
+        && let Some(&(_, units)) = rows.get(1)
+        && split_fields(units, delim).iter().all(|f| parse_number(f, decimal_comma).is_none())
+    {
+        start = 2;
+        t.notes.push(format!("The row \"{}\" under the header was read as units and skipped.", units.trim()));
+    }
     for &(no, line) in &rows[start..] {
         let fields = split_fields(line, delim);
         let get = |i: usize| -> Result<f64> {
@@ -478,6 +525,10 @@ mod tests {
         let rew_c = parse_csv("* Measurement: UMIK-1\n* Freq(Hz), SPL(dB), Phase(degrees)\n100, 0, 90\n200, 6.0206, 0\n").unwrap();
         assert!(rew_c.note().unwrap().contains("comment line"));
         assert!(rew_c.re[0].abs() < 1e-12 && (rew_c.im[0] - 1.0).abs() < 1e-12);
+        // a units row under the header is skipped
+        let u = parse_csv("Frequency,Re,Im\nHz,Ohm,Ohm\n100,6,1\n200,7,2\n").unwrap();
+        assert_eq!(u.f, vec![100.0, 200.0]);
+        assert!(u.note().unwrap().contains("units"));
         // a DC bin is dropped with a note
         let dc = parse_csv("f,re,im\n0,1,0\n1,2,3\n2,3,4\n").unwrap();
         assert_eq!(dc.f, vec![1.0, 2.0]);
@@ -486,6 +537,31 @@ mod tests {
         assert!(parse_csv("a,b,c\n1,2,3\n").is_err());
         assert!(parse_csv("f,re,im\n1,2\n").is_err());
         assert!(parse_csv("").is_err());
+    }
+
+    #[test]
+    fn byte_order_marks_and_windows_encodings() {
+        let zi = read("text/Zi_mid.txt");
+        let plain = parse_text(&zi).unwrap().1;
+        // UTF-8 with BOM: still an admittance table, inverted to the same impedance
+        let mut bom = b"\xEF\xBB\xBF".to_vec();
+        bom.extend_from_slice(zi.as_bytes());
+        let t = parse_text(&decode(&bom)).unwrap().1;
+        assert_eq!((t.re[0], t.im[0]), (plain.re[0], plain.im[0]));
+        assert!(parse_text(&format!("\u{feff}{zi}")).unwrap().1.note().unwrap().contains("Admittance"));
+        // UTF-16 LE and BE with BOM (Excel "Unicode text", PowerShell 5)
+        let csv = "Frequency [Hz]\tMagnitude [dB]\tPhase [°]\r\n100\t0\t90\r\n200\t6,0206\t0\r\n";
+        let le: Vec<u8> = [0xFF, 0xFE].into_iter().chain(csv.encode_utf16().flat_map(u16::to_le_bytes)).collect();
+        let be: Vec<u8> = [0xFE, 0xFF].into_iter().chain(csv.encode_utf16().flat_map(u16::to_be_bytes)).collect();
+        assert!(is_utf16(&le) && is_utf16(&be));
+        for bytes in [le, be] {
+            let t = parse_csv(&decode(&bytes)).unwrap();
+            assert!((t.im[0] - 1.0).abs() < 1e-12 && (t.re[1] - 2.0).abs() < 1e-4);
+        }
+        // Windows-1252 degree sign
+        let cp: Vec<u8> = b"f;dB;Phase [\xB0]\n100;0;90\n200;0;0\n".to_vec();
+        assert!(decode(&cp).contains("[°]"));
+        assert!((parse_csv(&decode(&cp)).unwrap().im[0] - 1.0).abs() < 1e-12);
     }
 
     #[test]

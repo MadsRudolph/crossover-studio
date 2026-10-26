@@ -305,15 +305,34 @@
 .cs-muted {
   color: var(--text-3);
 }
-@container workspace (max-width: 1240px) {
+/* Widths measured with 11 views: labelled tabs about 1020 px, the full curve tools up to 370 px. */
+@container workspace (max-width: 1440px) {
   .cs-traces {
     display: none;
   }
   .cs-traces-menu {
     display: block;
   }
+  .cs-ws-head .cs-tab {
+    gap: 5px;
+    padding: 0 7px;
+    letter-spacing: 0.04em;
+  }
 }
-@container workspace (max-width: 1080px) {
+@container workspace (max-width: 1160px) {
+  .cs-ws-head:has(.cs-ws-tools:not(:empty)) .cs-tab:not(.is-on) {
+    padding: 0 9px;
+  }
+  .cs-ws-head:has(.cs-ws-tools:not(:empty)) .cs-tab:not(.is-on) .cs-tab-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+@container workspace (max-width: 920px) {
   .cs-ws-head .cs-tab:not(.is-on) {
     padding: 0 9px;
   }

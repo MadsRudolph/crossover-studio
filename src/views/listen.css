@@ -1,0 +1,182 @@
+/* Listen view. Tokens only (docs/DESIGN.md). */
+
+.ls-grid {
+  display: grid;
+  grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 520px;
+}
+.ls-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.ls-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+@media (max-width: 1150px) {
+  .ls-grid { grid-template-columns: minmax(0, 1fr); }
+  .ls-main { min-height: 360px; }
+}
+
+/* ------------------------------------------------------------------ transport */
+.ls-transport {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.ls-play { min-width: 128px; justify-content: center; }
+.ls-meter {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ls-meter-rail {
+  position: relative;
+  height: 8px;
+  border-radius: var(--r-sm);
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.ls-meter-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: var(--good);
+}
+.ls-meter-fill[data-level="warm"] { background: var(--warn); }
+.ls-meter-fill[data-level="hot"] { background: var(--bad); }
+.ls-meter-text {
+  font-size: var(--fs-11);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ls-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.ls-label {
+  flex-shrink: 0;
+  width: 64px;
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: var(--fs-11);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.ls-grow { flex: 1; min-width: 0; }
+.ls-hint {
+  margin: 8px 0 0;
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  color: var(--text-3);
+}
+.ls-msg {
+  margin: 8px 0 0;
+  font-size: var(--fs-12);
+  line-height: 1.4;
+  color: var(--text-2);
+}
+.ls-msg.is-bad { color: var(--bad); }
+
+/* ------------------------------------------------------------------ source */
+.ls-sources .cs-seg-opt { white-space: nowrap; }
+.ls-detail {
+  margin-top: 10px;
+  font-size: var(--fs-12);
+  line-height: 1.5;
+  color: var(--text-2);
+  min-height: 36px;
+}
+.ls-detail b { color: var(--text); font-weight: 500; }
+.ls-drop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r);
+  background: var(--surface-3);
+  color: var(--text-2);
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.ls-drop.is-over { border-color: var(--accent); background: var(--surface-2); }
+.ls-drop-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ------------------------------------------------------------------ what plays */
+.ls-select { position: relative; flex: 1; min-width: 0; display: inline-flex; }
+.ls-select select {
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+  background: var(--surface-3);
+  color: var(--text);
+  font: 400 var(--fs-12) var(--font-mono);
+  text-overflow: ellipsis;
+  cursor: pointer;
+  outline: none;
+}
+.ls-select select:hover:not(:disabled) { border-color: var(--line-strong); }
+.ls-select select:focus-visible { border-color: var(--focus); box-shadow: 0 0 0 2px var(--focus); }
+.ls-select select:disabled { color: var(--text-3); cursor: not-allowed; }
+.ls-select select option { background: var(--surface-2); color: var(--text); }
+
+/* ------------------------------------------------------------------ units */
+.ls-units {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ls-unit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 8px 5px 10px;
+  border-radius: var(--r);
+  border-left: 3px solid var(--unit);
+  background: var(--surface-3);
+}
+.ls-unit-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 30px;
+}
+.ls-unit-foot .ls-hint { margin: 0; }
+
+/* ------------------------------------------------------------------ plot */
+.ls-plot-card { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.ls-plot { position: relative; flex: 1 1 0; min-height: 240px; }
+.ls-note {
+  margin: 10px 0 0;
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  color: var(--text-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-drop { transition: none; }
+}

@@ -156,7 +156,7 @@ function DriverCard({ u }: { u: UnitId }) {
                      options={[{ value: "cone", label: "Cone" }, { value: "dome", label: "Dome" }]}
                      onChange={v => set(d => { d.units[u].kind = v as "cone" | "dome"; }, p("kind"))} />
         </Field>
-        <Num stacked path={p("Re_ohm")} label="R_E" hint="Voice-coil DC resistance, measured with a multimeter."
+        <Num stacked path={p("Re_ohm")} label={<>R<sub>E</sub></>} hint="Voice-coil DC resistance, measured with a multimeter."
              value={unit.Re_ohm} unit="Ω" step={0.1} digits={2} onSet={v => set(d => { d.units[u].Re_ohm = v; }, p("Re_ohm"))} />
         <Num stacked path={p("D")} label="Effective Ø" hint="Cone plus about half the surround: S_D = πD²/4."
              value={unit.diameter_m} scale={1000} unit="mm" onSet={v => set(d => { d.units[u].diameter_m = v; }, p("D"))} />

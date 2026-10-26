@@ -137,7 +137,7 @@ export function assess(p: Prepared, design: Design, r: Results): Assessment {
       }
     }
     out.push({
-      id: "flat", group: "tone", title: "Flat on axis", weight: 3, score: s, state: stateOf(s, 0.999, 0.67),
+      id: "flat", group: "tone", title: "Flat on axis", weight: 3, score: s, state: stateOf(s, 0.999, 0.666),  // bad above 6 dB, as the Check panel
       value: `${m.on.spread.toFixed(1)} dB`, target: "≤ 4 dB (±2 dB)",
       summary: `150 Hz–15 kHz within ${m.on.spread.toFixed(1)} dB`,
       why: "Straight in front of the speaker you hear the direct sound first, and your ear judges the tone from it. Broad errors, an octave or more wide, are heard far more easily than narrow ones; that is why the curve is smoothed to 1/6 octave before judging it. ±2 dB from 150 Hz to 15 kHz is the usual mark of a neutral speaker.",
@@ -190,7 +190,9 @@ export function assess(p: Prepared, design: Design, r: Results): Assessment {
       summary: `Reaches ${f3.toFixed(0)} Hz, ${ripple > 0.2 ? `peaks ${sdb(ripple)} before rolling off` : "no bass hump"}`,
       why: "The box decides how deep the speaker plays (f3) and how controlled the bass is. A hump just above f3 makes every bass note boom at the same pitch; a smooth roll-off sounds tight. In a room the bass gains a few dB anyway, so a slightly over-damped box is the safer choice.",
       finding: `${r.box.label}: tuned to ${r.box.fB ? fmtHz(r.box.fB) : "no vent"}, −3 dB at ${f3.toFixed(1)} Hz, ${ripple > 0.2 ? `with a ${sdb(ripple)} hump above it` : "with no hump"}.`,
-      fix: s < 1 ? "Lengthen the vent (lower tuning, less hump) or add filling; with the vent plugged the closed box has no hump at all but less deep bass." : "",
+      fix: s >= 1 ? "" : r.box.MAP
+        ? "Lengthen the vent (lower tuning, less hump) or add filling; with the vent plugged the closed box has no hump at all but less deep bass."
+        : "The closed box is under-damped (Q too high): add filling, which lowers its Q and the hump.",
       focus: "box.L", band: [20, 200],
     });
   }
@@ -219,6 +221,9 @@ export function assess(p: Prepared, design: Design, r: Results): Assessment {
                                    Math.max(1e-12, Math.hypot(on[a].re[i] - on[b].re[i], on[a].im[i] - on[b].im[i])));
     const s = ramp(Math.max(Math.abs(dphi), avg), 30, 100);
     const flip = Math.abs(dphi) > 120;
+    // invert the unit that is not the midrange: the woofer (a digital switch) or the tweeter, so the
+    // midrange's other crossover is left as it is
+    const flipUnit = a === "mid" ? b : a;
     out.push({
       id, group: "blend", title, weight: 2, score: s, state: stateOf(s, 0.999, 0.45),
       value: `Δφ ${Math.abs(dphi).toFixed(0)}° at ${fmtHz(x)}`, target: "|Δφ| ≤ 30° over the overlap",
@@ -227,7 +232,7 @@ export function assess(p: Prepared, design: Design, r: Results): Assessment {
       finding: `At ${fmtHz(x)} the two are ${Math.abs(dphi).toFixed(0)}° apart (on average ${avg.toFixed(0)}° over the half octave either side), so together they give ${sdb(gain)} over one alone (+6.0 dB is perfect, −∞ is a total cancellation). `
         + (nullDb > 0 ? `Flipping one would leave a ${nullDb.toFixed(0)} dB notch: ${nullDb >= 15 ? "a deep reverse null, the classic sign of a good blend." : "a shallow reverse null, so the blend is only partial."}`
                       : "Flipping one would actually add better: they are closer to opposite than to in phase."),
-      fix: s >= 1 ? "" : flip ? `They are nearly opposite: try inverting the ${NAME[b]}'s polarity.`
+      fix: s >= 1 ? "" : flip ? `They are nearly opposite: try inverting the ${NAME[flipUnit]}'s polarity${flipUnit === "woof" ? " (in the MiniDSP)" : ""}, which leaves the midrange's other crossover as it is.`
         : "Shift the phase of one side: move its filter frequency, change its filter order, or change the other side's. The “Try this” list tests the options on your data.",
       focus, at: x, band: [x / 2, x * 2],
     });
@@ -246,14 +251,16 @@ export function assess(p: Prepared, design: Design, r: Results): Assessment {
     }
     const s = ramp(-worst, 1, 6);
     out.push({
-      id: "canc", group: "blend", title: "No cancellation", weight: 1, score: s, state: stateOf(s, 0.999, 0.4),
+      id: "canc", group: "blend", title: "No cancellation", weight: 1, score: s, state: stateOf(s, 0.999, 0.6),  // bad below -3 dB
       value: `${sdb(worst)} worst`, target: "≥ −1 dB",
       summary: worst > -1 ? "The drivers never fight each other" : `Drivers partly cancel at ${fmtHz(f[iw])}`,
       why: "The power sum is what the drivers would give if their phases were random. Where the real sum falls well below it, two drivers are cancelling: the hole is deep only at one listening position and moves as you move your head, so it sounds like a phasey, unstable image rather than a simple dip.",
       finding: worst > -1 ? "Nowhere between 150 Hz and 15 kHz does the sum fall more than 1 dB below the power sum."
         : `At ${fmtHz(f[iw])} (${place(f[iw], m, on, iw)}) the sum is ${sdb(worst)} below the power sum.`,
       fix: s < 1 ? "See the blend of the crossover named above; a polarity flip or a different filter order usually fixes it." : "",
-      focus: "tw.pol", at: f[iw], band: [f[iw] / 1.5, f[iw] * 1.5],
+      // the polarity that acts at the worst point: the woofer's (in the MiniDSP) at the lower crossover
+      focus: m.x_wm !== null && m.x_mt !== null && Math.abs(Math.log(f[iw] / m.x_wm)) < Math.abs(Math.log(f[iw] / m.x_mt)) ? "digital.pol" : "tw.pol",
+      at: f[iw], band: [f[iw] / 1.5, f[iw] * 1.5],
     });
   }
 
@@ -316,7 +323,7 @@ export function assess(p: Prepared, design: Design, r: Results): Assessment {
     for (let i = 0; i < f.length; i++) if (f[i] > 200 && f[i] < 15000) { const z = cabsAt(on.Zamp2, i); if (z < zmin) { zmin = z; imin = i; } }
     const s = ramp(zmin, 4, 2.5);
     out.push({
-      id: "load", group: "safety", title: "Safe amplifier load", weight: 1.5, score: s, state: stateOf(s, 0.999, 0.5),
+      id: "load", group: "safety", title: "Safe amplifier load", weight: 1.5, score: s, state: stateOf(s, 0.999, 0.333),  // bad below 3 ohm
       value: `${zmin.toFixed(2)} Ω min`, target: "≥ 4 Ω",
       summary: `Channel 2 never below ${zmin.toFixed(1)} Ω`,
       why: "Amplifier channel 2 drives the midrange and tweeter branches in parallel. Where their impedances overlap the load can fall well below either one. Below about 4 Ω a small amplifier runs hot, clips earlier or trips its protection.",
@@ -351,7 +358,7 @@ export function assess(p: Prepared, design: Design, r: Results): Assessment {
     const res = resistorPower(p, design);
     if (res.length) {
       const worst = res.reduce((x, y) => (y.pinkPerW > x.pinkPerW ? y : x));
-      const P = worst.pinkPerW * TEST_POWER_W, name = (id: string) => id.replace(".pad.", " ");
+      const P = worst.pinkPerW * TEST_POWER_W, name = (id: string) => id.replace(/^tw\./, "Tweeter ").replace(/^mid\./, "Midrange ").replace("pad.", "");
       const s = ramp(P, RESISTOR_RATING_W / 2, RESISTOR_RATING_W);
       out.push({
         id: "resistors", group: "safety", title: "Resistors keep cool", weight: 0.75, score: s, state: stateOf(s, 0.999, 0.5),
@@ -484,15 +491,18 @@ export interface Suggestion {
   design: Design;
 }
 
+/** The stock values next to v in a component list: one step down and up for a stock value, the two
+ *  either side for an off-list one, only the nearest end when v lies outside the list. */
+export function stockNeighbours(list: number[], v: number): number[] {
+  const s = [...list].sort((a, b) => a - b), i = s.findIndex(x => Math.abs(x / v - 1) < 0.005);
+  if (i < 0) { const j = s.findIndex(x => x > v); return j < 0 ? s.slice(-1) : j === 0 ? s.slice(0, 1) : [s[j - 1], s[j]]; }
+  return [s[i - 1], s[i + 1]].filter((x): x is number => x !== undefined);
+}
+
 /** Try small, buildable changes one at a time and return those that raise the score, best first. */
 export function suggest(p: Prepared, design: Design, base: Assessment, max = 5): Suggestion[] {
   const cands: { label: string; focus?: string; knob: string; mut: (d: Design) => void }[] = [];
-  const C = p.profile.components;
-  const neighbours = (list: number[], v: number) => {
-    const s = [...list].sort((a, b) => a - b), i = s.findIndex(x => Math.abs(x / v - 1) < 0.005);
-    if (i < 0) { const j = s.findIndex(x => x > v); return [s[Math.max(0, j - 1)], s[j < 0 ? s.length - 1 : j]]; }
-    return [s[i - 1], s[i + 1]].filter((x): x is number => x !== undefined);
-  };
+  const C = p.profile.components, neighbours = stockNeighbours;
   const U = { woof: "Woofer", mid: "Midrange", tw: "Tweeter" } as const;
 
   for (const u of UNIT_IDS)

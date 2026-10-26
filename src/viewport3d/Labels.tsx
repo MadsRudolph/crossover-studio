@@ -7,7 +7,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Line } from "@react-three/drei";
 import * as THREE from "three";
 import { UNIT_IDS, type UnitId } from "../types";
-import type { SceneLayout, Vec3 } from "./layout";
+import { spreadLabels, type SceneLayout, type Vec3 } from "./layout";
 import type { ProbeState } from "./physics";
 import { fmtFixed } from "../ui/format";
 
@@ -37,6 +37,9 @@ export function labelGeometry(layout: SceneLayout): Record<UnitId, LabelGeometry
   return out;
 }
 
+/** Height kept free at the bottom of the stage for the probe and vent chips (px). */
+const LABEL_BOTTOM_CLEAR = 96;
+
 /** In-scene part: leader lines, rim dots, and the per-frame projection of the DOM labels. */
 export function LabelLeaders({ layout, probe, colors, hovered, focused, nodes }: {
   layout: SceneLayout; probe: ProbeState | null; colors: Record<UnitId, string>;
@@ -51,14 +54,17 @@ export function LabelLeaders({ layout, probe, colors, hovered, focused, nodes }:
   useEffect(() => { group.current?.traverse(o => o.layers.set(1)); });
 
   useFrame(() => {
+    const pins: { el: HTMLDivElement; x: number; y: number }[] = [];
     for (const u of UNIT_IDS) {
       const el = nodes.current[u];
       if (!el) continue;
       v.set(...geo[u].anchor).project(camera);
       const behind = v.z > 1;
       el.style.visibility = behind ? "hidden" : "visible";
-      el.style.transform = `translate3d(${((v.x + 1) / 2) * size.width}px, ${((1 - v.y) / 2) * size.height}px, 0)`;
+      if (!behind) pins.push({ el, x: ((v.x + 1) / 2) * size.width, y: ((1 - v.y) / 2) * size.height });
     }
+    spreadLabels(pins, size.height - LABEL_BOTTOM_CLEAR);
+    for (const p of pins) p.el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`;
   });
 
   return (

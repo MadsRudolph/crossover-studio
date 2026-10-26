@@ -12,11 +12,13 @@ const PRESETS: { id: CameraPreset; label: string; title: string }[] = [
   { id: "top", label: "Top", title: "Top view" },
 ];
 
-function Toggle({ on, onClick, title, children, disabled }: {
-  on: boolean; onClick(): void; title: string; children: ReactNode; disabled?: boolean;
+/** A pressed/unpressed button: the accessible name stays the same (`label`) and aria-pressed carries the
+ *  state, as screen readers expect; the tooltip says what a click will do. */
+function Toggle({ on, onClick, label, title, children, disabled }: {
+  on: boolean; onClick(): void; label: string; title: string; children: ReactNode; disabled?: boolean;
 }) {
   return (
-    <button type="button" className="v3d-tb-btn" aria-pressed={on} title={title} aria-label={title}
+    <button type="button" className="v3d-tb-btn" aria-pressed={on} title={title} aria-label={label}
       onClick={onClick} disabled={disabled}>
       {children}
     </button>
@@ -34,13 +36,13 @@ export function Toolbar({ onPreset, onReset, reducedMotion, canAnimate }: {
   return (
     <div className="v3d-toolbar" role="toolbar" aria-label="3D view">
       <div className="v3d-tb-group">
-        <Toggle on={ui.xray} onClick={() => setUi({ xray: !ui.xray })} title={ui.xray ? "Hide the inside (X)" : "X-ray: see the vents and drivers inside (X)"}>
+        <Toggle label="X-ray" on={ui.xray} onClick={() => setUi({ xray: !ui.xray })} title={ui.xray ? "Hide the inside (X)" : "X-ray: see the vents and drivers inside (X)"}>
           <ScanEye size={15} strokeWidth={1.75} /><span>X-ray</span>
         </Toggle>
-        <Toggle on={ui.waves} onClick={() => setUi({ waves: !ui.waves })} title={ui.waves ? "Hide sound waves" : "Show sound waves"}>
+        <Toggle label="Sound waves" on={ui.waves} onClick={() => setUi({ waves: !ui.waves })} title={ui.waves ? "Hide sound waves" : "Show sound waves"}>
           <Waves size={15} strokeWidth={1.75} /><span>Waves</span>
         </Toggle>
-        <Toggle on={ui.animate && canAnimate} onClick={() => setUi({ animate: !ui.animate })} title={animTitle} disabled={reducedMotion}>
+        <Toggle label="Animation" on={ui.animate && canAnimate} onClick={() => setUi({ animate: !ui.animate })} title={animTitle} disabled={reducedMotion}>
           {ui.animate && canAnimate ? <Pause size={15} strokeWidth={1.75} /> : <Play size={15} strokeWidth={1.75} />}
           <span>{ui.animate && canAnimate ? "Pause" : "Animate"}</span>
         </Toggle>

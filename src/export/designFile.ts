@@ -2,7 +2,8 @@
 // pass a design around or keep versions next to their report. Results are not stored: they are
 // recomputed from the profile on open, so a file never carries stale curves.
 
-import type { Design } from "../types";
+import { passiveParts } from "../engine/passive";
+import type { Design, PassiveBranch } from "../types";
 
 export const DESIGN_FILE_EXT = "xstudio";
 export const DESIGN_FILE_FORMAT = "crossover-studio/design";
@@ -37,11 +38,17 @@ export function designProblems(d: unknown, where = "design"): string[] {
   const box = d.box, dg = d.digital, pol = d.pol;
   if (!isObj(box) || !["plugged", "one", "two"].includes(box.mode as string) || !isNum(box.L) || !isNum(box.fill))
     out.push(`${where}.box is incomplete`);
+  else if (!(box.L > 0) || !(box.fill > 0)) out.push(`${where}.box needs a positive vent length and filling factor`);
   if (!isObj(dg) || !isNum(dg.fc) || !isNum(dg.g_woof_dB) || !["BW2", "LR2", "LR4", "BW4"].includes(dg.align as string))
     out.push(`${where}.digital needs fc, align (BW2, LR2, LR4 or BW4) and g_woof_dB`);
+  // the MiniDSP runs at 96 kHz: a crossover must sit between 0 Hz and the 48 kHz Nyquist frequency
+  else if (!(dg.fc > 0 && dg.fc < 48000)) out.push(`${where}.digital.fc must lie between 0 and 48 kHz (got ${dg.fc} Hz)`);
   for (const u of ["mid", "tw"]) {
     const b = d[u];
-    if (!isObj(b) || typeof b.topo !== "string" || !isObj(b.vals)) out.push(`${where}.${u} needs a topology and part values`);
+    if (!isObj(b) || typeof b.topo !== "string" || !isObj(b.vals)) { out.push(`${where}.${u} needs a topology and part values`); continue; }
+    // the engine's own check: a known topology, and every part a positive, finite value
+    try { passiveParts(b as unknown as PassiveBranch, u); }
+    catch (e) { out.push(`${where}: ${(e as Error).message}`); }
   }
   if (!isObj(pol) || ![pol.woof, pol.mid, pol.tw].every(v => v === 1 || v === -1)) out.push(`${where}.pol needs +1 or -1 for woof, mid and tw`);
   return out;

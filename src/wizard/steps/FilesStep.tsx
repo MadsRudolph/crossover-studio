@@ -9,6 +9,14 @@ import { useWizard, message } from "../draft";
 import { dataItems, roleDef, type WizardFile } from "../roles";
 import { unitTone } from "./common";
 
+/** Adds files or folders; tells how many files of a folder were left out as not being measurements. */
+async function add(paths: string[]) {
+  const { skipped } = await useWizard.getState().addPaths(paths);
+  if (skipped.length)
+    toast({ tone: "info", title: `${skipped.length} file${skipped.length === 1 ? "" : "s"} in the folder left out`,
+            description: `Not readable as a measurement: ${skipped.slice(0, 4).join(", ")}${skipped.length > 4 ? ", …" : ""}` });
+}
+
 const FORMAT_LABEL: Record<WizardFile["format"], string> = { mat: "MAT", ltspice: "LTspice", csv: "CSV", unknown: "?" };
 
 export function FilesStep() {
@@ -23,7 +31,7 @@ export function FilesStep() {
   useEffect(() => {
     if (!desktop) return;
     let off: (() => void) | undefined, live = true;
-    void platform.onFileDrop(paths => void useWizard.getState().addPaths(paths)).then(u => { if (live) off = u; else u(); });
+    void platform.onFileDrop(paths => void add(paths)).then(u => { if (live) off = u; else u(); });
     return () => { live = false; off?.(); };
   }, [desktop]);
 
@@ -31,9 +39,17 @@ export function FilesStep() {
     if (!desktop) { input.current?.click(); return; }
     try {
       const paths = await platform.pickMeasurementFiles();
-      if (paths.length) await useWizard.getState().addPaths(paths);
+      if (paths.length) await add(paths);
     } catch (e) {
       toast({ tone: "bad", title: "Could not open the file dialog", description: message(e) });
+    }
+  };
+  const chooseFolder = async () => {
+    try {
+      const dir = await platform.pickMeasurementFolder();
+      if (dir) await add([dir]);
+    } catch (e) {
+      toast({ tone: "bad", title: "Could not open the folder dialog", description: message(e) });
     }
   };
   const example = async () => {
@@ -64,11 +80,15 @@ export function FilesStep() {
            onDrop={onDrop}>
         <span className="wz-drop-icon" aria-hidden><UploadCloud size={files.length ? 20 : 30} strokeWidth={1.5} /></span>
         <div className="wz-drop-text">
-          <strong>{over ? "Drop to add" : "Drop measurement files here"}</strong>
+          <strong>{over ? "Drop to add" : desktop ? "Drop measurement files or folders here" : "Drop measurement files here"}</strong>
           <span>MATLAB .mat · Matlab2LTspice .txt · CSV{desktop ? "" : " (.mat needs the desktop app)"}</span>
         </div>
         <div className="wz-drop-actions">
-          <Button variant="primary" icon={FolderOpen} onClick={() => void choose()}>Choose files…</Button>
+          <Button variant="primary" icon={FileText} onClick={() => void choose()}>Choose files…</Button>
+          {desktop && <Button variant="subtle" icon={FolderOpen} onClick={() => void chooseFolder()}
+                              title="Add every .mat, .txt and .csv file in a folder and its sub-folders, such as your whole Lab D or Lab E data folder">
+            Add a folder…
+          </Button>}
           <Button variant="ghost" icon={Sparkles} onClick={() => void example()} loading={busy}
                   title="Load the Group 10 System D measurements as CSV files, to see how the import works">
             Use the example files

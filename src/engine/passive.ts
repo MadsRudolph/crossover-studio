@@ -81,10 +81,17 @@ export function passiveParts(b: PassiveBranch, unit = ""): LadderPart[] {
   const pre = unit ? `${unit}.` : "";
   const parts: LadderPart[] = topology(b.topo).parts.map(p => {
     const v = b.vals[p.name];
-    if (!(v > 0)) throw new Error(`${pre}${p.name}: missing or non-positive value`);
+    if (!(v > 0 && Number.isFinite(v))) throw new Error(`${pre}${p.name}: missing, non-positive or infinite value`);
     return { pos: p.pos, kind: p.kind, value: v, id: `${pre}${p.name}` };
   });
   const pad = b.pad ?? {};
+  // 0, null or undefined mean "no resistor there" (the optimiser tries Rs = 0); a negative, NaN or
+  // infinite value would silently give a non-physical (or open) branch, so it is an error
+  for (const k of ["Rs", "Rp"] as const) {
+    const v = pad[k];
+    if (v !== undefined && v !== null && v !== 0 && !(v > 0 && Number.isFinite(v)))
+      throw new Error(`${pre}pad.${k}: the L-pad resistor must be a positive resistance (got ${v} Ω)`);
+  }
   if (pad.Rs) parts.push({ pos: "series", kind: "R", value: pad.Rs, id: `${pre}pad.Rs` });
   if (pad.Rp) parts.push({ pos: "shunt", kind: "R", value: pad.Rp, id: `${pre}pad.Rp` });
   if (b.zobel && b.zobel.R > 0 && b.zobel.C > 0) parts.push({ pos: "shunt", kind: "RC", value: [b.zobel.R, b.zobel.C], id: `${pre}zobel` });

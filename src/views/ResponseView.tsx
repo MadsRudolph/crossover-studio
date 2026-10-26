@@ -60,7 +60,13 @@ export function ResponseView() {
   }, [results, angles.join(), ui.visible, ui.showPowerSum, snapshots, main]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const bands: PlotBand[] = [judgeBand(level)];
-  if (tol.band) bands.push({ id: "tol", x: results.f, lower: tol.band.lo, upper: tol.band.hi, color: "sum", opacity: 0.16 });
+  // the band is often under 1 dB wide and the sum line covers most of it: a stronger fill plus thin
+  // edges keep it readable where it matters (around the crossovers)
+  if (tol.band) bands.push({ id: "tol", x: results.f, lower: tol.band.lo, upper: tol.band.hi, color: "accent", opacity: 0.28 });
+  const tolEdges: PlotSeries[] = tol.band ? [
+    { id: "tol-lo", label: "Tolerance, 2.5 %", x: results.f, y: tol.band.lo, color: "accent", width: 1, opacity: 0.7, quiet: true },
+    { id: "tol-hi", label: "Tolerance, 97.5 %", x: results.f, y: tol.band.hi, color: "accent", width: 1, opacity: 0.7, quiet: true },
+  ] : [];
 
   const drive = useMemo<PlotSeries[]>(() => {
     const d = terminalDrive(results.angles["0"], design);
@@ -100,7 +106,7 @@ export function ResponseView() {
         {size.height > 0 && (
           <StackedPlots xRange={[20, 20000]} probeHz={probe} onProbe={setProbe} syncId="response"
             plots={[
-              { key: "spl", height: hTop, series, bands, yRange: responseRange(level), yLabel: "Level", yUnit: "dB",
+              { key: "spl", height: hTop, series: [...tolEdges, ...series], bands, yRange: responseRange(level), yLabel: "Level", yUnit: "dB",
                 vLines: crossoverLines(m), title: <span className="vw-plot-title">Acoustic output</span>, ariaLabel: "Acoustic response" },
               { key: "drive", height: hBottom, series: drive, yRange: [-36, 6], yLabel: "Drive", yUnit: "dB",
                 title: <span className="vw-plot-title">{withUnits("Voltage at the terminals, re 1 V in")}</span>, ariaLabel: "Drive voltage at the terminals" },

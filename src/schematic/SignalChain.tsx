@@ -158,9 +158,9 @@ export function SignalChain({ compact }: { compact?: boolean }) {
         height={Math.round(layout.height * scale)}
         viewBox={`0 0 ${layout.width} ${layout.height}`}
         role="group"
-        aria-label={`Signal chain at ${fmtFreq(live?.f ?? probe)}: MiniDSP, two amplifier channels, the passive board and three drivers`}
+        aria-label={`Signal chain at ${fmtFreq(probe)}: MiniDSP, two amplifier channels, the passive board and three drivers`}
       >
-        <Board layout={layout} live={live} />
+        <Board layout={layout} live={live} probe={probe} />
         <Wires wires={layout.wires} live={live} />
         {layout.junctions.map((j, k) => (
           <circle key={k} className="sc-junction" cx={j.x} cy={j.y} r={dense ? 2.2 : 2.6} style={{ fill: TONE_VAR[j.tone] }} />
@@ -271,7 +271,7 @@ function Wires({ wires, live }: { wires: Wire[]; live: LiveChain | null }) {
   );
 }
 
-function Board({ layout, live }: { layout: ChainLayout; live: LiveChain | null }) {
+function Board({ layout, live, probe }: { layout: ChainLayout; live: LiveChain | null; probe: number }) {
   const b = layout.board, compact = layout.mode === "compact";
   return (
     <g className="sc-static" aria-hidden>
@@ -279,7 +279,7 @@ function Board({ layout, live }: { layout: ChainLayout; live: LiveChain | null }
       <text className="sc-caps sc-legend" x={b.x + 12} y={b.y + 4}>Passive board</text>
       {live && (
         <text className="sc-legend sc-legend-probe" x={b.x + b.w - 12} y={b.y + 4} textAnchor="end">
-          {compact ? `dB at ${fmtFreq(live.f)}` : `levels in dB re input, at ${fmtFreq(live.f)}`}
+          {compact ? `dB re input, ${fmtFreq(probe)}` : `levels in dB re input, at ${fmtFreq(probe)}`}
         </text>
       )}
     </g>

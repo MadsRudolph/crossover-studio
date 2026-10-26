@@ -8,7 +8,7 @@ import { compute, fitBox, prepare, type Prepared } from "../engine";
 import bundledSystemD from "../../profiles/system-d-group10/profile.json";
 import defaultDesignRaw from "../../fixtures/design.json";
 
-export type ViewId = "system" | "verdict" | "response" | "phase" | "impedance" | "filters" | "box" | "directivity" | "compare";
+export type ViewId = "system" | "verdict" | "response" | "phase" | "impedance" | "filters" | "box" | "directivity" | "compare" | "listen" | "built";
 export type Theme = "dark" | "light" | "system";
 
 export interface Snapshot { id: string; name: string; color: string; design: Design; results: Results }
@@ -112,7 +112,7 @@ function persisted(): Partial<Pick<State, "theme" | "view">> & { designs?: Recor
   try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); } catch { return {}; }
 }
 
-const VIEW_IDS: readonly ViewId[] = ["system", "verdict", "response", "phase", "impedance", "filters", "box", "directivity", "compare"];
+const VIEW_IDS: readonly ViewId[] = ["system", "verdict", "response", "phase", "impedance", "filters", "box", "directivity", "compare", "listen", "built"];
 
 /** `?view=<id>` opens a given view (deep links, screenshots); it is not remembered over the user's own choice. */
 function urlView(): ViewId | undefined {

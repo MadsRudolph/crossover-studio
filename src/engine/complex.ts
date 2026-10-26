@@ -65,7 +65,8 @@ export function interpLogF(src: Series, f: ArrayLike<number>): CArray {
     // the target grid is ascending, so the bracket only moves forward
     if (i > 0 && f[i] < f[i - 1]) k = 0;
     while (k < n - 2 && lf[k + 1] < x) k++;
-    const t = Math.min(1, Math.max(0, (x - lf[k]) / (lf[k + 1] - lf[k])));
+    // a repeated source frequency gives a zero-width bracket: take one of its points instead of 0/0
+    const span = lf[k + 1] - lf[k], t = span > 0 ? Math.min(1, Math.max(0, (x - lf[k]) / span)) : x > lf[k] ? 1 : 0;
     out.re[i] = src.re[k] + t * (src.re[k + 1] - src.re[k]);
     out.im[i] = src.im[k] + t * (src.im[k + 1] - src.im[k]);
   }

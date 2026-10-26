@@ -141,3 +141,24 @@ export function orbitPoint(center: Vec3, distance: number, azimuth: number, pola
     center[2] + distance * s * Math.cos(azimuth),
   ];
 }
+
+/** Screen-space gap kept between two callouts that land on top of each other (px). */
+const LABEL_GAP_Y = 30, LABEL_OVERLAP_X = 150;
+
+/** Pushes callouts apart vertically where the camera stacks them (side and top views put the midrange
+ *  and tweeter anchors almost on one point), keeping their order from top to bottom. Mutates `pins`. */
+export function spreadLabels(pins: { x: number; y: number }[], maxY = Infinity): void {
+  const order = [...pins].sort((a, b) => a.y - b.y);
+  for (let i = 1; i < order.length; i++) {
+    for (let j = 0; j < i; j++) {
+      const a = order[j], b = order[i];
+      if (Math.abs(a.x - b.x) < LABEL_OVERLAP_X && b.y - a.y < LABEL_GAP_Y) b.y = a.y + LABEL_GAP_Y;
+    }
+  }
+  // a stack pushed into the bottom strip (the HUD chips live there) moves back up as a whole
+  for (let i = order.length - 1, limit = maxY; i >= 0; i--) {
+    if (order[i].y <= limit) break;
+    order[i].y = limit;
+    limit -= LABEL_GAP_Y;
+  }
+}
