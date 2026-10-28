@@ -986,11 +986,9 @@
   border: 0;
   background: transparent;
   color: var(--text-3);
-  font-family: var(--font-label);
-  font-weight: 600;
-  font-size: var(--fs-12);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: var(--fs-13);
   white-space: nowrap;
   transition: color var(--t-fast) var(--ease);
 }

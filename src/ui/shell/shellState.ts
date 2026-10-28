@@ -1,4 +1,4 @@
-// Shell-only UI state that no view needs: the help dialog and the design's display name.
+// Shell-only UI state that no view needs: the help dialog, focus mode and the design's display name.
 // (Everything about the design itself lives in the app store.)
 import { create } from "zustand";
 
@@ -11,6 +11,9 @@ function readNames(): Record<string, string> {
 interface ShellState {
   help: boolean;
   setHelp(open: boolean): void;
+  /** Focus mode (F): the inspector, the dock and the status bar step aside so the view has the window. */
+  focus: boolean;
+  setFocus(on: boolean): void;
   /** Design name per profile id. */
   names: Record<string, string>;
   setName(profileId: string, name: string): void;
@@ -19,6 +22,8 @@ interface ShellState {
 export const useShell = create<ShellState>((set, get) => ({
   help: false,
   setHelp(help) { set({ help }); },
+  focus: false,
+  setFocus(focus) { set({ focus }); },
   names: readNames(),
   setName(profileId, name) {
     const names = { ...get().names, [profileId]: name };

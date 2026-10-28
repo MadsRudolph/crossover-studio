@@ -1,12 +1,13 @@
-// Hint strip a view shows at its top: the (at most two) most important insights that point at this
-// view, each with "probe it", "apply the tested fix" and "show the control", plus "+N more" to the
-// Guide. Dismissed hints stay hidden for the session until their finding changes.
+// Hint strip a view shows under its header: one slim row with the most important insight that points at
+// this view ("probe it", "apply the tested fix", "show the control"), and "+N more" that unfolds the
+// others in place (remembered for the session). Plots are the hero, so the strip never takes more than
+// one row unless asked. Dismissed hints stay hidden for the session until their finding changes.
 //
 // Also the shared insight actions the Guide uses (apply a fix with an undo toast, show an insight in
 // its view), and useSettledInsights(): the insights of the design once it has settled, so a live
 // slider drag never pays for the providers (the verdict's suggestions take about 30 ms).
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ArrowUpRight, Crosshair, Wand2, X } from "lucide-react";
 import { create } from "zustand";
 import { useStore, type ViewId } from "../state/store";
@@ -85,39 +86,53 @@ export function showInsight(ins: Insight, view: ViewId = ins.view) {
   if (ins.focus) focusControl(ins.focus);
 }
 
-// ---------------------------------------------------------------- dismissals (per session)
+// ---------------------------------------------------------------- dismissals and unfolding (per session)
 const keyOf = (ins: Insight) => `${ins.id}|${ins.severity}|${ins.title}`;
-const useDismissed = create<{ ids: Set<string>; dismiss(k: string): void }>(set => ({
+const useDismissed = create<{ ids: Set<string>; dismiss(k: string): void; unfolded: boolean; setUnfolded(v: boolean): void }>(set => ({
   ids: new Set(),
   dismiss: k => set(s => ({ ids: new Set(s.ids).add(k) })),
+  unfolded: false,
+  setUnfolded: unfolded => set({ unfolded }),
 }));
 
 // ---------------------------------------------------------------- the strip
-const MAX_SHOWN = 2;
+/** Unfolded, the strip lists at most this many; the rest are in the Guide. */
+const MAX_UNFOLDED = 4;
 
 export function ViewInsights({ view }: { view: ViewId }) {
   const all = useSettledInsights();
   const dismissed = useDismissed(s => s.ids);
   const dismiss = useDismissed(s => s.dismiss);
+  const unfolded = useDismissed(s => s.unfolded);
+  const setUnfolded = useDismissed(s => s.setUnfolded);
   const setView = useStore(s => s.setView);
   // the Verdict lists every criterion itself: only other features' hints go above it
   const here = all.filter(i => i.severity !== "good" && (i.view === view || i.alsoIn?.includes(view)) && !dismissed.has(keyOf(i))
                               && !(view === "verdict" && i.id.startsWith("assess.")));
   if (!here.length) return null;
-  const shown = here.slice(0, MAX_SHOWN), more = here.length - shown.length;
+  const shown = unfolded ? here.slice(0, MAX_UNFOLDED) : here.slice(0, 1);
+  const hidden = here.length - 1;
+  const toggle = hidden > 0 && (
+    <button type="button" className="ins-more" aria-expanded={unfolded} onClick={() => setUnfolded(!unfolded)}
+            title={unfolded ? "Show only the most important hint" : "Show the other hints for this view"}>
+      {unfolded ? "Fewer" : `+${hidden} more`}
+    </button>
+  );
   return (
-    <div className="ins-strip" role="region" aria-label="Hints for this view">
-      {shown.map(ins => <HintRow key={ins.id} ins={ins} view={view} onDismiss={() => dismiss(keyOf(ins))} />)}
-      {more > 0 && (
-        <button type="button" className="ins-more" onClick={() => setView("guide")} title="See every hint in the Guide">
-          +{more} more in the Guide
+    <div className={"ins-strip" + (unfolded ? " is-unfolded" : "")} role="region" aria-label="Hints for this view">
+      {shown.map((ins, i) => (
+        <HintRow key={ins.id} ins={ins} view={view} onDismiss={() => dismiss(keyOf(ins))} extra={i === 0 ? toggle : undefined} />
+      ))}
+      {unfolded && here.length > MAX_UNFOLDED && (
+        <button type="button" className="ins-guide" onClick={() => setView("guide")}>
+          {here.length - MAX_UNFOLDED} more in the Guide
         </button>
       )}
     </div>
   );
 }
 
-function HintRow({ ins, view, onDismiss }: { ins: Insight; view: ViewId; onDismiss(): void }) {
+function HintRow({ ins, view, onDismiss, extra }: { ins: Insight; view: ViewId; onDismiss(): void; extra?: ReactNode }) {
   const f = insightProbe(ins);
   const setProbe = useStore(s => s.setProbe);
   return (
@@ -127,6 +142,7 @@ function HintRow({ ins, view, onDismiss }: { ins: Insight; view: ViewId; onDismi
         <span className="ins-hint-title">{ins.title}</span>
         <span className="ins-hint-detail">{ins.detail}</span>
       </span>
+      {extra}
       <span className="ins-hint-actions">
         {f && <Button size="sm" variant="ghost" icon={Crosshair} onClick={() => setProbe(f)} title={`Move the probe to ${fmtFreq(f)}`}>{fmtFreq(f)}</Button>}
         {ins.fix && <Button size="sm" variant="subtle" icon={Wand2} onClick={() => applyInsightFix(ins)} title={ins.fix.label}>Apply fix</Button>}

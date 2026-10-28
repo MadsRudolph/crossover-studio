@@ -56,7 +56,7 @@ Rhythm: `--pad-view` (20/24/20: the padding of a view), `--pad-view-x` (24), `--
 blocks of a view), `--pad-card` (16), `--gap-card` (12, title to content), `--measure` (84 ch, the widest
 prose line). Small windows (≤ 1280 px wide or ≤ 760 px tall) step the view padding and gap down one notch.
 
-Chrome sizes: `--titlebar-h` 48, `--tabbar-h` 44, `--statusbar-h` 30, `--dock-head-h` 34, `--insp-w` 320,
+Chrome sizes: `--titlebar-h` 48, `--tabbar-h` 40, `--statusbar-h` 30, `--dock-head-h` 34, `--insp-w` 320,
 `--rail-w` 56, `--side-w` 300 (a view's side column), `--ctl-h` 28 / `--ctl-h-sm` 24 (control heights).
 
 Type: the existing `--fs-11 … --fs-32` plus `--fs-14` and `--fs-20`; line heights `--lh-tight` 1.2,
@@ -82,7 +82,7 @@ Small caps are for *labels*, never for something you read as a sentence or a tit
 
 ```
 ┌ title bar 48: brand · system / design · ─── · history · snapshot · Optimise · Export · ⌘K · chat · ⚙ ┐
-├ inspector 320 (or rail 56) ┬ tab bar 44: Guide │ Design ▸ │ Analyse ▸ │ Build & test ▸ · view tools ┤
+├ inspector 320 (or rail 56) ┬ tab bar 40: Guide │ Design ▸ │ Analyse ▸ │ Build & test ▸ · view tools ┤
 │ one step open at a time     │ view: title + folded lede · hint strip (1 row) · hero · side column    │
 │                             ├ dock 34 (folded on windows < 1000 px tall) ─────────────────────────────┤
 ├ status bar 30: score · check chips (quiet when passing) · probe · engine time ──────────────────────────┤
@@ -93,12 +93,17 @@ Small caps are for *labels*, never for something you read as a sentence or a tit
   dots; the driver names and profile notes fold out under it. Below 140 px wide it draws an **icon rail** (the
   five step numbers with their status dots); the shell lets the column collapse to `--rail-w` and registers
   `useInspectorChrome().setExpand` so a rail click widens it again.
-- **Dock.** Folded to its 34 px header on windows under 1000 px tall (today 850) and by default on first run
-  below 1440×1000; the user's own choice always wins. The how-to hint only shows while it is open.
-- **Chat.** An overlay drawer from the right (380–440 px, `--shadow-2`, over the workspace, not beside it) on
-  windows under 1600 px wide; a resizable docked column at 1600 px and up. It never squeezes the inspector.
-- **Focus mode (`F`, and a title-bar toggle).** Hides the inspector, dock and status bar, leaving title bar,
-  tabs and the view; Escape or F again restores them. For reading a plot or showing the design to someone.
+- **Dock.** Folded to its 34 px header on windows under 1000 px tall; the user's own choice always wins. The
+  dock measures its own height, so what it draws always matches its panel. The how-to hint only shows while
+  it is open.
+- **Chat.** An overlay drawer from the right (`min(420px, 42vw)`, `--shadow-2`, over the workspace, not beside
+  it) on windows under 1600 px wide; a resizable docked column at 1600 px and up. It never squeezes the inspector.
+- **Focus mode (`F`, a title-bar toggle, the palette, `?focus=1`).** Hides the inspector, dock and status bar,
+  leaving title bar, tabs and the view; Escape or F again restores them. For reading a plot or showing the
+  design to someone.
+- **Short views.** The workspace body is a size container (`viewport`). Below 640 px of view height the lede
+  folds to one line, read-outs put label and number on one line and the rhythm tightens a step, so the plots
+  keep their height; the hint strip is always one row unless unfolded.
 - **Status bar.** Only what is about the *design* and the probe: score, check chips, probe, engine time
   (quiet). The profile name lives in the title bar and the inspector.
 
@@ -118,6 +123,12 @@ Small caps are for *labels*, never for something you read as a sentence or a tit
 - **Empty states:** `EmptyState`, centred in the hero area, with one primary action.
 
 ## Phase 2: per-view changes
+
+Status (October 2026): the shell layers, the hint strip, the Guide, the tab bar, the side columns of Box,
+Compare, Time, Sensitivity and Listen (one surface), the chat drawer, focus mode and the keyboard docs are
+done. Still open: merging System's probe and checks cards, the Verdict criteria + detail in one card, the
+title bar's "⋯" menu, the Directivity/Time/Sensitivity/Limits secondary-plot switch on short windows, and the
+As built / Listening test step tiles and the sheets' `.vw-rule` sections.
 
 Global layers that are wired in shell files:
 

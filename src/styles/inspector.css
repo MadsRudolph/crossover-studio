@@ -111,6 +111,9 @@
   gap: var(--sp-2);
   padding: var(--sp-3) 0;
 }
+.insp-rail-open {
+  margin-bottom: var(--sp-1);
+}
 .insp-rail-step {
   --step-color: var(--accent);
   position: relative;

@@ -1,6 +1,9 @@
 // Application shell: title bar, inspector | workspace (+ signal-chain dock) | optional AI chat, status bar,
 // and the layers above them (palette, help, wizard, export, toasts). Panel sizes are remembered between
 // sessions (the layout with the chat open is remembered separately from the one without).
+// How they share the window (docs/LOOK_AND_FEEL.md): the inspector folds to an icon rail, the dock folds
+// on short windows, the chat is a drawer over the workspace below CHAT_DOCK_PX and a column above it, and
+// focus mode (F) leaves just the title bar, the tabs and the view.
 import { useEffect, useState } from "react";
 import { Group, Panel, Separator, useDefaultLayout, usePanelRef } from "react-resizable-panels";
 import { BUNDLED_PROFILES, useStore } from "./state/store";
@@ -15,6 +18,8 @@ import { HelpDialog } from "./ui/shell/HelpDialog";
 import { Splash } from "./ui/shell/Splash";
 import { ErrorBoundary } from "./ui/shell/ErrorBoundary";
 import { useGlobalShortcuts } from "./ui/shell/shortcuts";
+import { useShell } from "./ui/shell/shellState";
+import { useInspectorChrome } from "./ui/inspector/chrome";
 import { Inspector } from "./ui/inspector/Inspector";
 import { ImportWizard } from "./wizard/ImportWizard";
 import { ExportSheet } from "./export/ExportSheet";
@@ -26,12 +31,21 @@ const layoutStorage = {
   setItem: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* not remembered */ } },
 };
 
-const DOCK_COLLAPSED_PX = 36;
+const DOCK_COLLAPSED_PX = 34;
+/** The inspector's icon rail (--rail-w). */
+const RAIL_PX = 56;
+/** From this window width the chat is a resizable column beside the workspace; below it, a drawer over it. */
+const CHAT_DOCK_PX = 1600;
 
-/** `?chat=1` opens the chat panel on start (deep links, screenshots), like `?sheet=` does for the sheets. */
+/** `?chat=1` opens the chat panel on start and `?focus=1` starts in focus mode (deep links, screenshots),
+ *  like `?sheet=` does for the sheets. */
 function useUrlChat() {
   useEffect(() => {
-    try { if (new URLSearchParams(window.location.search).get("chat") === "1") useStore.getState().setUi({ chat: true }); }
+    try {
+      const q = new URLSearchParams(window.location.search);
+      if (q.get("chat") === "1") useStore.getState().setUi({ chat: true });
+      if (q.get("focus") === "1") useShell.getState().setFocus(true);
+    }
     catch { /* no URL to read */ }
   }, []);
 }
@@ -56,7 +70,7 @@ function useBoot(): "loading" | "leaving" | "done" {
 }
 
 /** Below this window height the views need the room more than the signal chain does. */
-const DOCK_AUTO_COLLAPSE_PX = 850;
+const DOCK_AUTO_COLLAPSE_PX = 1000;
 /** Set once the user expands or collapses the dock: their choice is not overridden afterwards. */
 let dockTouched = false;
 
@@ -79,6 +93,27 @@ function useAutoCollapseDock(dockRef: ReturnType<typeof usePanelRef>) {
   }, [dockRef]);
 }
 
+/** The window's inner width, updated on resize. */
+function useWindowWidth(): number {
+  const [w, setW] = useState(() => window.innerWidth);
+  useEffect(() => {
+    const on = () => setW(window.innerWidth);
+    window.addEventListener("resize", on);
+    return () => window.removeEventListener("resize", on);
+  }, []);
+  return w;
+}
+
+/** Lets the inspector's rail (and its header) widen or fold the column it sits in. */
+function useInspectorPanel(ref: ReturnType<typeof usePanelRef>) {
+  useEffect(() => {
+    const c = useInspectorChrome.getState();
+    c.setExpand(() => { const p = ref.current; if (p?.isCollapsed()) p.expand(); });
+    c.setCollapse(() => { const p = ref.current; if (p && !p.isCollapsed()) p.collapse(); });
+    return () => { c.setExpand(null); c.setCollapse(null); };
+  }, [ref]);
+}
+
 export default function App() {
   useApplyTheme();
   useGlobalShortcuts();
@@ -88,64 +123,78 @@ export default function App() {
   const chat = useStore(s => s.ui.chat);
   useUrlChat();
 
-  const main = useDefaultLayout({ id: "cs-layout-main", storage: layoutStorage, panelIds: chat ? ["inspector", "work", "chat"] : ["inspector", "work"] });
+  const focus = useShell(x => x.focus);
+  const width = useWindowWidth();
+  const chatDocked = chat && width >= CHAT_DOCK_PX;
+
+  const main = useDefaultLayout({ id: "cs-layout-main", storage: layoutStorage, panelIds: chatDocked ? ["inspector", "work", "chat"] : ["inspector", "work"] });
   const work = useDefaultLayout({ id: "cs-layout-work", storage: layoutStorage, panelIds: ["view", "dock"] });
   const dockRef = usePanelRef();
-  const [dock, setDock] = useState({ collapsed: false, height: 160 });
+  const inspRef = usePanelRef();
   useAutoCollapseDock(dockRef);
+  useInspectorPanel(inspRef);
 
   return (
     <>
-      <div className="cs-app">
+      <div className={"cs-app" + (focus ? " is-focus" : "")}>
         <TitleBar />
-        <Group id="cs-layout-main" orientation="horizontal" className="cs-main" defaultLayout={main.defaultLayout}
-               onLayoutChanged={main.onLayoutChanged}>
-          <Panel id="inspector" defaultSize={320} minSize={280} maxSize={480} groupResizeBehavior="preserve-pixel-size" className="cs-pane-inspector">
-            <ErrorBoundary label="The inspector">
-              <Inspector />
-            </ErrorBoundary>
-          </Panel>
-          <Separator className="cs-sep cs-sep-v" aria-label="Resize the inspector" />
-          <Panel id="work" minSize={560} className="cs-pane-work">
-            <Group id="cs-layout-work" orientation="vertical" defaultLayout={work.defaultLayout} onLayoutChanged={work.onLayoutChanged}>
-              <Panel id="view" minSize={240}>
-                <Workspace />
-              </Panel>
-              <Separator className="cs-sep cs-sep-h" aria-label="Resize the signal chain dock" />
-              <Panel
-                id="dock"
-                panelRef={dockRef}
-                defaultSize={200}
-                minSize={110}
-                maxSize="60%"
-                collapsible
-                collapsedSize={DOCK_COLLAPSED_PX}
-                groupResizeBehavior="preserve-pixel-size"
-                onResize={size => setDock({ collapsed: size.inPixels <= DOCK_COLLAPSED_PX + 1, height: size.inPixels })}
-              >
-                <Dock
-                  collapsed={dock.collapsed}
-                  height={dock.height}
-                  onToggle={() => {
-                    const p = dockRef.current; if (!p) return;
-                    dockTouched = true; // the user's own choice wins over the automatic one from now on
-                    if (p.isCollapsed()) p.expand(); else p.collapse();
-                  }}
-                />
-              </Panel>
-            </Group>
-          </Panel>
-          {chat && (
-            <>
-              <Separator className="cs-sep cs-sep-v" aria-label="Resize the chat" />
-              <Panel id="chat" defaultSize={360} minSize={300} maxSize={600} groupResizeBehavior="preserve-pixel-size" className="cs-pane-chat">
-                <ErrorBoundary label="The chat">
-                  <ChatPanel />
-                </ErrorBoundary>
-              </Panel>
-            </>
+        <div className="cs-main-wrap">
+          <Group id="cs-layout-main" orientation="horizontal" className="cs-main" defaultLayout={main.defaultLayout}
+                 onLayoutChanged={main.onLayoutChanged}>
+            <Panel id="inspector" panelRef={inspRef} defaultSize={320} minSize={280} maxSize={480} collapsible collapsedSize={RAIL_PX}
+                   groupResizeBehavior="preserve-pixel-size" className="cs-pane-inspector">
+              <ErrorBoundary label="The inspector">
+                <Inspector />
+              </ErrorBoundary>
+            </Panel>
+            <Separator className="cs-sep cs-sep-v cs-sep-insp" aria-label="Resize the inspector" />
+            <Panel id="work" minSize={560} className="cs-pane-work">
+              <Group id="cs-layout-work" orientation="vertical" defaultLayout={work.defaultLayout} onLayoutChanged={work.onLayoutChanged}>
+                <Panel id="view" minSize={240}>
+                  <Workspace />
+                </Panel>
+                <Separator className="cs-sep cs-sep-h cs-sep-dock" aria-label="Resize the signal chain dock" />
+                <Panel
+                  id="dock"
+                  panelRef={dockRef}
+                  defaultSize={200}
+                  minSize={110}
+                  maxSize="60%"
+                  collapsible
+                  collapsedSize={DOCK_COLLAPSED_PX}
+                  groupResizeBehavior="preserve-pixel-size"
+                  className="cs-pane-dock"
+                >
+                  <Dock
+                    collapsedPx={DOCK_COLLAPSED_PX}
+                    onToggle={() => {
+                      const p = dockRef.current; if (!p) return;
+                      dockTouched = true; // the user's own choice wins over the automatic one from now on
+                      if (p.isCollapsed()) p.expand(); else p.collapse();
+                    }}
+                  />
+                </Panel>
+              </Group>
+            </Panel>
+            {chatDocked && (
+              <>
+                <Separator className="cs-sep cs-sep-v" aria-label="Resize the chat" />
+                <Panel id="chat" defaultSize={380} minSize={300} maxSize={600} groupResizeBehavior="preserve-pixel-size" className="cs-pane-chat">
+                  <ErrorBoundary label="The chat">
+                    <ChatPanel />
+                  </ErrorBoundary>
+                </Panel>
+              </>
+            )}
+          </Group>
+          {chat && !chatDocked && (
+            <div className="cs-chat-drawer">
+              <ErrorBoundary label="The chat">
+                <ChatPanel />
+              </ErrorBoundary>
+            </div>
           )}
-        </Group>
+        </div>
         <StatusBar />
       </div>
 

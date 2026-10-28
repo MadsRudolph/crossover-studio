@@ -24,10 +24,11 @@ function Lede({ children }: { children: ReactNode }) {
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    // the button only shows when the text runs past two lines (folded or not)
+    // the button only shows when there is more than the fold shows: folded, the clamp hides some of the
+    // text; unfolded, the text runs past one line (the fold is one or two lines, by the view's height)
     const read = () => {
       const lh = parseFloat(getComputedStyle(el).lineHeight) || 19;
-      setOverflows(el.scrollHeight > 2 * lh + 2);
+      setOverflows(el.classList.contains("is-folded") ? el.scrollHeight > el.clientHeight + 1 : el.scrollHeight > 1.5 * lh);
     };
     read();
     const ro = new ResizeObserver(read);

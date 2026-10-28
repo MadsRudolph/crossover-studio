@@ -14,7 +14,7 @@ import { useShell } from "./shellState";
 import { viewKey } from "./viewKeys";
 import { pickAndOpenProfile } from "../../wizard/profiles";
 import { Wand2 } from "lucide-react";
-import { MessagesSquare } from "lucide-react";
+import { Focus, MessagesSquare } from "lucide-react";
 import { designItForMe, useAutopilot } from "../../views/autopilotRun";
 
 export interface Command {
@@ -209,6 +209,9 @@ export function buildCommands(): Command[] {
     { id: "app.help", title: "Keyboard shortcuts and help", section: "App", shortcut: "?", icon: Keyboard, keywords: "about version",
       run: () => useShell.getState().setHelp(true) },
   );
+  const focusOn = useShell.getState().focus;
+  cmds.push({ id: "display.focus", title: focusOn ? "Leave focus mode" : "Focus mode", section: "Display", shortcut: "F", icon: Focus,
+              keywords: "zen fullscreen hide inspector dock status bar distraction", run: () => useShell.getState().setFocus(!focusOn) });
   cmds.push({ id: "app.chat", title: s.ui.chat ? "Close the AI chat" : "Ask about this design", section: "App", shortcut: "C", icon: MessagesSquare,
               keywords: "ai chat question explain why assistant openrouter claude", run: () => st().setUi({ chat: !st().ui.chat }) });
   return cmds;

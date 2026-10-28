@@ -14,10 +14,10 @@
 .cs-chat-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 35px;
+  gap: var(--sp-2);
+  height: var(--tabbar-h);
   flex: none;
-  padding: 0 6px 0 12px;
+  padding: 0 var(--sp-2) 0 var(--sp-3);
   border-bottom: 1px solid var(--line);
   color: var(--text-2);
 }

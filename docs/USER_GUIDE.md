@@ -436,17 +436,28 @@ answers questions such as "why is there a dip at 2 kHz?" in plain words, from yo
 
 | Keys | Action |
 |---|---|
-| Ctrl+K (⌘K) | Command palette: every action, searchable |
+| Ctrl+K (⌘K) | Command palette: every action, view and probe target, searchable |
 | ? | Help and all shortcuts |
-| 1–9, 0 | Switch view (0 = Listen; As built has no key) |
+| 1–9, 0 | Switch view, the first ten tabs: 1 Guide, 2 System, 3 Verdict, 4 Response, 5 Phase, 6 Impedance, 7 Filters, 8 Box, 9 Directivity, 0 Time. The later views (Sensitivity, Limits, Compare, Listen, As built, Listening test) by tab or palette |
 | Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z) | Undo / redo |
-| S | Snapshot |
+| D | Design it for me (the autopilot, shown in the Guide) |
 | O | Optimise (again to stop) |
+| S | Snapshot |
 | E | Export |
-| P | Focus the probe frequency |
+| P | Type a probe frequency |
 | X | X-ray the 3D model |
+| C | Open or close the AI chat (optional) |
+| F | Focus mode: hide the inspector, the signal chain and the status bar; F or Esc to leave |
+| Space (Listen view) | Play / stop |
+| A / B (Listen view) | Play the design / the chosen snapshot |
+| Shift while dragging a slider | Fine steps; double-click a slider to reset it |
+| ↑ / ↓ on a focused slider or part value | Step it |
 | ← / → in a plot | Step the probe (Shift: ⅓ octave) |
 | Wheel / Shift-drag in a plot | Zoom / box-zoom, double-click to reset |
+
+The inspector shows one step at a time; the button in its header opens all of them, and the one next to it
+folds the column to a rail of step numbers (click a number to open it again). The signal-chain dock folds
+on its own on windows under 1000 px tall; open it with its header.
 
 ## Troubleshooting
 

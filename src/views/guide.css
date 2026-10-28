@@ -1,35 +1,36 @@
-/* Guide view: the design's standing, the next thing to do, the other insights, the big actions and
-   the autopilot's stepper and result. Two columns when the workspace is wide, one when it is not. */
+/* Guide view, the app's "home": one centred column at a reading width. The standing, then the next
+   thing to do as the one card, then quiet rows (alternatives, the other hints, what is already right).
+   No card holds another card: inside one, space and --line-soft rules do the grouping. */
 .gd-view {
-  max-width: 1500px;
+  align-items: center;
 }
-.gd-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 12px;
-  align-items: start;
-}
-.gd-main,
-.gd-side {
+.gd-column {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-width: 0;
+  gap: var(--sp-5);
+  width: 100%;
+  max-width: 860px;
+  padding-bottom: var(--sp-7);
+}
+.gd-sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-1);
 }
 @container workspace (max-width: 900px) {
-  .gd-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .gd-big-btn small {
-    display: none;
+  .gd-column {
+    gap: var(--sp-4);
   }
 }
 
 /* ------------------------------------------------------------------ standing */
 .gd-standing {
   display: flex;
-  gap: 16px;
+  gap: var(--sp-5);
   align-items: center;
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--line-soft);
 }
 .gd-score {
   position: relative;
@@ -71,8 +72,8 @@
 .gd-counts .is-warn b { color: var(--warn); }
 .gd-counts .is-good b { color: var(--good); }
 .gd-headline {
-  margin: 6px 0 8px;
-  font-size: var(--fs-13);
+  margin: var(--sp-2) 0 var(--sp-3);
+  font-size: var(--fs-14);
   line-height: 1.45;
   color: var(--text-2);
 }
@@ -93,17 +94,14 @@
   align-items: center;
   gap: 6px;
   width: 100%;
-  padding: 4px 8px 4px 4px;
-  border: 1px solid var(--line);
-  border-bottom: 2px solid var(--st);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
+  padding: 4px 6px 6px 2px;
+  border: 0;
+  border-bottom: 2px solid color-mix(in srgb, var(--st) 70%, transparent);
+  border-radius: 0;
+  background: none;
   color: var(--text-2);
-  font-family: var(--font-label);
-  font-weight: 600;
-  font-size: var(--fs-11);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: var(--fs-12);
+  font-weight: 500;
   cursor: pointer;
   transition: background var(--t-fast) var(--ease);
 }
@@ -131,8 +129,10 @@
 }
 
 /* ------------------------------------------------------------------ next thing to do */
+/* the hero: the one card on the page, its severity on the left edge */
 .gd-next {
   --sev: var(--accent);
+  padding: var(--sp-5) var(--sp-6) var(--sp-5);
   border-left: 3px solid var(--sev);
 }
 .gd-next.is-bad { --sev: var(--bad); }
@@ -143,25 +143,24 @@
   align-items: center;
   gap: 8px;
   margin: 0;
-  font-size: var(--fs-18);
-  font-weight: 500;
+  font-size: var(--fs-20);
+  font-weight: 600;
   line-height: 1.3;
   color: var(--text);
 }
 .gd-next-title svg { color: var(--good); }
 .gd-next-detail {
-  margin: 6px 0 10px;
-  max-width: 100ch;
+  margin: var(--sp-2) 0 var(--sp-3);
+  max-width: var(--measure);
   font-size: var(--fs-13);
   line-height: 1.5;
   color: var(--text-2);
 }
+/* the curve an insight is about: part of its card, not a box of its own */
 .gd-plot {
-  margin: 4px 0 10px;
-  padding: 6px 6px 2px;
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  background: var(--surface-2);
+  margin: var(--sp-1) 0 var(--sp-4);
+  padding: var(--sp-2) 0 0;
+  border-top: 1px solid var(--line-soft);
 }
 .gd-actions {
   display: flex;
@@ -187,7 +186,7 @@
 
 /* ------------------------------------------------------------------ the other insights */
 .gd-group + .gd-group {
-  margin-top: 10px;
+  margin-top: var(--sp-4);
 }
 .gd-group-title {
   margin: 0 0 4px;
@@ -202,18 +201,18 @@
 .gd-group-title.is-warn { color: var(--warn); }
 .gd-row {
   --sev: var(--text-3);
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--line-soft);
 }
 .gd-row.is-bad { --sev: var(--bad); }
 .gd-row.is-warn { --sev: var(--warn); }
-.gd-row.is-info { --sev: var(--accent); }
+.gd-row.is-info { --sev: var(--text-3); }
 .gd-row.is-good { --sev: var(--good); }
 .gd-row-head {
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 7px 2px;
+  padding: var(--sp-2) 2px;
   border: 0;
   background: none;
   color: var(--text-2);
@@ -267,67 +266,35 @@
   color: var(--text-2);
 }
 
-/* ------------------------------------------------------------------ side column */
+/* ------------------------------------------------------------------ alternatives, example, what's right */
 .gd-big {
   display: flex;
-  gap: 6px;
-  padding: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: calc(-1 * var(--sp-2));
 }
-.gd-big-btn {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  flex: 1;
-  min-width: 0;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  background: var(--surface-2);
-  color: var(--text-2);
-  text-align: left;
-  cursor: pointer;
-  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
-}
-.gd-big-btn:hover:not(:disabled) {
-  background: var(--surface-hover);
-  border-color: var(--line-strong);
-}
-.gd-big-btn:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-.gd-big-btn svg {
-  flex: none;
-  margin-top: 1px;
-  color: var(--text-3);
-}
-.gd-big-btn span {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.gd-big-btn b {
-  font-weight: 600;
-  font-size: var(--fs-13);
-  color: var(--text);
-}
-.gd-big-btn small {
+.gd-big-or {
+  margin-right: var(--sp-1);
   font-size: var(--fs-12);
-  line-height: 1.35;
   color: var(--text-3);
 }
-.gd-big-btn.is-primary {
-  border-color: var(--accent-line);
-  background: var(--accent-soft);
+.gd-big-count {
+  margin-left: 6px;
+  color: var(--text-3);
 }
-.gd-big-btn.is-primary svg { color: var(--accent); }
-.gd-big-btn.is-primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 22%, var(--surface-2));
-  border-color: var(--accent);
+.gd-example {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-3);
+  border-left: 2px solid var(--line-strong);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: var(--surface-1);
 }
 .gd-example p {
-  margin: 0 0 8px;
+  flex: 1;
+  margin: 0;
   font-size: var(--fs-12);
   line-height: 1.45;
   color: var(--text-2);
@@ -337,14 +304,14 @@
   font-weight: 600;
 }
 .gd-good {
-  padding: 4px 14px;
+  border-top: 1px solid var(--line-soft);
 }
 .gd-good-head {
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 6px 0;
+  padding: var(--sp-3) 0 var(--sp-2);
   border: 0;
   background: none;
   color: var(--text-3);
@@ -361,6 +328,7 @@
 
 /* ------------------------------------------------------------------ the autopilot */
 .gd-auto {
+  padding: var(--sp-5) var(--sp-6);
   border-color: var(--accent-line);
 }
 .gd-auto .vw-card-title svg {

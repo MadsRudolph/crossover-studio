@@ -19,6 +19,9 @@ interface InspectorChrome {
   /** Set by the shell when the inspector column can collapse to a rail: widens it again. */
   expand: (() => void) | null;
   setExpand(expand: (() => void) | null): void;
+  /** Set by the shell alongside `expand`: folds the column to its rail. */
+  collapse: (() => void) | null;
+  setCollapse(collapse: (() => void) | null): void;
 }
 
 export const useInspectorChrome = create<InspectorChrome>(set => ({
@@ -29,6 +32,8 @@ export const useInspectorChrome = create<InspectorChrome>(set => ({
   },
   expand: null,
   setExpand(expand) { set({ expand }); },
+  collapse: null,
+  setCollapse(collapse) { set({ collapse }); },
 }));
 
 /** Below this width the inspector draws its icon rail instead of the steps. */

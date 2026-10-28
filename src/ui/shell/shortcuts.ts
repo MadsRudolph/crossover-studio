@@ -32,6 +32,12 @@ export const SHORTCUTS: { group: string; items: ShortcutDoc[] }[] = [
     { keys: "P", what: "Type a probe frequency" },
     { keys: "X", what: "X-ray the 3D model" },
     { keys: "C", what: "Open or close the AI chat (optional)" },
+    { keys: "F", what: "Focus mode: hide the inspector, dock and status bar (F or Esc to leave)" },
+  ] },
+  { group: "Listen view", items: [
+    { keys: "Space", what: "Play or stop" },
+    { keys: "A", what: "Play the design" },
+    { keys: "B", what: "Play the chosen snapshot" },
   ] },
   { group: "Controls", items: [
     { keys: "Shift", what: "Hold while dragging a slider for fine steps" },
@@ -92,6 +98,8 @@ export function useGlobalShortcuts() {
         case "x": e.preventDefault(); s.setUi({ xray: !s.ui.xray }); break;
         case "c": e.preventDefault(); s.setUi({ chat: !s.ui.chat }); break;
         case "d": e.preventDefault(); designItForMe(); break;
+        case "f": e.preventDefault(); { const sh = useShell.getState(); sh.setFocus(!sh.focus); } break;
+        case "escape": if (useShell.getState().focus) { e.preventDefault(); useShell.getState().setFocus(false); } break;
       }
     };
     window.addEventListener("keydown", onKey);

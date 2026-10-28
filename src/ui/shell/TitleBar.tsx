@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, CircleQuestionMark, Download, MessagesSquare, Monitor, Moon, Redo2, Search, Sparkles, Square, Sun, Undo2 } from "lucide-react";
+import { Camera, CircleQuestionMark, Download, Focus, MessagesSquare, Monitor, Moon, Redo2, Search, Sparkles, Square, Sun, Undo2 } from "lucide-react";
 import { useStore } from "../../state/store";
 import { ProfileSwitcher } from "../../wizard/ProfileSwitcher";
 import { Button, IconButton } from "../Button";
@@ -15,6 +15,8 @@ export function TitleBar() {
   const s = useStore();
   const opt = useOptimiser();
   const setHelp = useShell(x => x.setHelp);
+  const focus = useShell(x => x.focus);
+  const setFocus = useShell(x => x.setFocus);
   const ready = !!s.results;
   const ThemeIcon = s.theme === "dark" ? Moon : s.theme === "light" ? Sun : Monitor;
 
@@ -69,6 +71,9 @@ export function TitleBar() {
           <Kbd keys="Mod+K" quiet />
         </button>
       </Tooltip>
+      <IconButton icon={Focus} label={focus ? "Leave focus mode" : "Focus mode"} shortcut="F" active={focus}
+                  hint="Hide the inspector, the signal chain and the status bar, so the view has the window. F or Esc to leave."
+                  onClick={() => setFocus(!focus)} />
       <IconButton icon={MessagesSquare} label="Ask about this design" shortcut="C" active={s.ui.chat}
                   hint="Optional AI chat: ask why the design does what it does. Needs an OpenRouter key and the internet." onClick={() => s.setUi({ chat: !s.ui.chat })} />
       <IconButton icon={ThemeIcon} label={`Theme: ${s.theme}`} hint="Dark, light, or follow the system. Click to switch." onClick={cycleTheme} />

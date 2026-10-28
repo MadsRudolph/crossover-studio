@@ -82,7 +82,6 @@ export function ListeningTestView() {
 
   return (
     <div className="vw-view lt-view">
-      <ViewInsights view="listentest" />
       <ViewHeader title="Listening test" actions={<>
         {ephemeral && <span className="lt-kind" title="Example data: nothing is saved">Example</span>}
         {!ephemeral && !p.variants.length && (
@@ -96,6 +95,7 @@ export function ListeningTestView() {
         Task 4, done methodically: blind, balanced and level matched, after IEC 60268-13 and Bech &amp; Zacharov. The results say which
         frequency region and control to change.
       </ViewHeader>
+      <ViewInsights view="listentest" />
 
       <nav className="lt-steps" aria-label="Listening test steps">
         {STEPS.map((s, i) => (

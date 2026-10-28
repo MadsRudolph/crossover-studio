@@ -917,3 +917,86 @@
 @media (prefers-reduced-motion: reduce) {
   .vw-bar-fill, .vw-drop-bar { transition: none; }
 }
+
+/* ------------------------------------------------------------------ short views
+   The plots are the hero: on a short workspace the header and the read-outs give way first. The lede
+   folds to one line, the read-outs put label and number on one line, the rhythm tightens a step. */
+@container viewport (max-height: 640px) {
+  .vw-view {
+    padding: var(--sp-3) var(--sp-5) var(--sp-3);
+    gap: var(--sp-2);
+  }
+  .vw-title {
+    font-size: var(--fs-15);
+  }
+  .vw-lede {
+    margin-top: 2px;
+  }
+  .vw-lede.is-folded {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+  .vw-ro {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+    padding: 0 var(--sp-3) 0 var(--sp-3);
+  }
+  .vw-ro-value {
+    font-size: var(--fs-15);
+  }
+  .vw-card {
+    padding: var(--sp-3);
+  }
+  .vw-card-head {
+    margin-bottom: var(--sp-2);
+  }
+}
+@container viewport (max-height: 520px) {
+  .vw-strip-note {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ side columns: one surface
+   A side column of several cards reads as one panel: the cards share a single surface and are parted
+   by soft rules, instead of being a stack of separate boxes. */
+.vw-view .vw-box-side,
+.vw-view .vw-cmp-side,
+.vw-view .tm-side,
+.vw-view .sn-side,
+.vw-view .ls-side {
+  align-self: start;
+  gap: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-lg);
+  background: var(--surface-card);
+}
+.vw-view .vw-box-side > .vw-card,
+.vw-view .vw-cmp-side > .vw-card,
+.vw-view .tm-side > .vw-card,
+.vw-view .sn-side > .vw-card,
+.vw-view .ls-side > .vw-card {
+  flex: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.vw-view .vw-box-side > .vw-card + .vw-card,
+.vw-view .vw-cmp-side > .vw-card + .vw-card,
+.vw-view .tm-side > .vw-card + .vw-card,
+.vw-view .sn-side > .vw-card + .vw-card,
+.vw-view .ls-side > .vw-card + .vw-card {
+  border-top: 1px solid var(--line-soft);
+}
+/* loose text under the cards of a side column (a footnote) keeps the card padding */
+.vw-view .vw-box-side > :not(.vw-card),
+.vw-view .tm-side > :not(.vw-card),
+.vw-view .sn-side > :not(.vw-card),
+.vw-view .ls-side > :not(.vw-card) {
+  padding: 0 var(--pad-card) var(--pad-card);
+}

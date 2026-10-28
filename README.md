@@ -17,6 +17,9 @@ in the course basket.
 
 ## What it does
 
+- **Guide:** the app opens here. It shows where the design stands and the one next thing to fix, with a tested
+  fix. **Design it for me** works out a whole design step by step and explains each choice. Every other view
+  shows the findings that concern it.
 - **System:** the loudspeaker in 3D at real size, with cones and vent air moving at the probe frequency.
 - **Verdict:** a score out of 100 with the reason behind every criterion, and "Try this" changes tested on your
   data.
@@ -34,6 +37,12 @@ in the course basket.
 - **Export:** MiniDSP biquads, a ready-to-run LTspice folder, the parts list, `.xstudio` design files, and a
   **report pack**: a LaTeX section with booktabs tables and pgfplots figures, the same as Markdown, and a sheet
   of quiz numbers.
+- **Time, Sensitivity, Limits:** group delay and step response; which part matters most and which to measure;
+  how loud it can play and what gives up first.
+- **Listening test:** the Task 4 kit: blind, balanced order, printable sheets, in-app blind playback, results with
+  confidence intervals and a report section.
+- **Ask about this design (optional):** an AI chat (your own OpenRouter key) that answers from the app's own
+  numbers and tests every change before it proposes it.
 - **Optimiser:** searches the course basket values for the flattest response that keeps both crossings inside
   their windows.
 
@@ -199,6 +208,9 @@ src/viewport3d/  the 3D loudspeaker
 src/charts/      the canvas plotting library
 src/schematic/   the live signal chain
 src/wizard/      measurement import
+src/insights/    findings from every feature, ranked for the Guide and the hint strips
+src/listentest/  the Task 4 listening-test kit
+src/chat/        the optional AI chat (OpenRouter)
 src/export/      MiniDSP, LTspice, parts list, design files and the report pack
 src-tauri/       Rust backend: .mat / text readers, profile storage
 profiles/        the bundled example profile

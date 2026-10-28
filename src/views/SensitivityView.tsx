@@ -82,7 +82,6 @@ export function SensitivityView() {
 
   return (
     <div className="vw-view">
-      <ViewInsights view="sensitivity" />
       <ViewHeader title="Part sensitivity"
         actions={<>
           {busy && <Badge tone="neutral">Testing the verdict…</Badge>}
@@ -95,6 +94,7 @@ export function SensitivityView() {
         Each part changed on its own, everything else held: the largest change of the 1/6-octave smoothed on-axis sum over
         150 Hz–15 kHz, and of the verdict score. Click a bar to show the part in the inspector and probe where it acts.
       </ViewHeader>
+      <ViewInsights view="sensitivity" />
       <div className="vw-strip">
         {x && xv && (
           <Readout label={`Decides a crossover · ${TRACE_META[x.unit].name} ${x.label}`} value={fmtSigned(xv.xoverDb)} unit={`dB at ${fmtFreq(xv.xoverHz)}`}

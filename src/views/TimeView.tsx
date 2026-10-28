@@ -118,7 +118,6 @@ export function TimeView() {
 
   return (
     <div className="vw-view">
-      <ViewInsights view="time" />
       <ViewHeader title="Time domain"
         actions={<>
           {irs.busy && <Badge tone="neutral">Working out the impulse…</Badge>}
@@ -135,6 +134,7 @@ export function TimeView() {
         impulse response for 1 V into the MiniDSP. Time zero is the arrival over the profile's reference distance
         (d = {gd.ref.distance.toFixed(2)} m), as in the Phase view; only the differences between units carry meaning.
       </ViewHeader>
+      <ViewInsights view="time" />
       <div className="vw-strip">
         <XoverReadout x={gd.xover.wm} label="Woofer/mid" onProbe={setProbe} />
         <XoverReadout x={gd.xover.mt} label="Mid/tweeter" onProbe={setProbe} />

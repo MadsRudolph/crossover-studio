@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
-import { ChevronDown, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
+import { ChevronDown, ChevronsDownUp, ChevronsUpDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useStore } from "../../state/store";
 import { UNIT_IDS, type CheckState } from "../../types";
 import { StatusDot, worstState } from "../Badge";
@@ -59,6 +59,7 @@ export function Inspector() {
   const mode = useInspectorChrome(s => s.mode);
   const setMode = useInspectorChrome(s => s.setMode);
   const expand = useInspectorChrome(s => s.expand);
+  const collapse = useInspectorChrome(s => s.collapse);
   const [open, setOpen] = useState(() => readOpen(mode));
   const [unitsOpen, setUnitsOpen] = useState(readUnitsOpen);
   const profile = useStore(s => s.profile);
@@ -106,6 +107,10 @@ export function Inspector() {
 
   const railNav = (
     <nav className="insp-rail" aria-label="Workflow steps">
+      {expand && (
+        <IconButton size="sm" icon={PanelLeftOpen} label="Show the inspector" tooltipSide="right"
+                    hint="Widen the column again to edit the steps." onClick={expand} className="insp-rail-open" />
+      )}
       {STEP_IDS.map((id, i) => {
         const st = status(id);
         const title = STEPS.find(s => s.id === id)?.title ?? id;
@@ -143,6 +148,10 @@ export function Inspector() {
                             label={mode === "one" ? "Open all steps" : "One step at a time"}
                             hint={mode === "one" ? "Keep every step open, as one long column." : "Opening a step folds the others."}
                             onClick={switchMode} />
+                {collapse && (
+                  <IconButton size="sm" icon={PanelLeftClose} label="Fold the inspector to a rail"
+                              hint="The steps stay one click away; the view gets the room." onClick={collapse} />
+                )}
               </div>
               {unitsOpen && (
                 <ul className="insp-units">

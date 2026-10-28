@@ -9,9 +9,50 @@
   background: var(--bg);
 }
 
+/* the panes, with the chat drawer laid over them on narrower windows */
+.cs-main-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
 .cs-main {
   flex: 1;
   min-height: 0;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ focus mode (F) */
+/* The panes give their room to the view: the panel elements (which carry the group's flex share, by
+   their ids) are hidden, so the remaining panels split the space between them. The panels set their
+   display inline, hence the !important. */
+.cs-app.is-focus #inspector,
+.cs-app.is-focus .cs-sep-insp,
+.cs-app.is-focus #dock,
+.cs-app.is-focus .cs-sep-dock,
+.cs-app.is-focus .cs-statusbar {
+  display: none !important;
+}
+
+/* ------------------------------------------------------------------ chat drawer (narrower windows) */
+.cs-chat-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  width: min(420px, 42vw);
+  min-width: 340px;
+  background: var(--surface-1);
+  border-left: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-2);
+  animation: cs-drawer-in var(--t) var(--ease);
+}
+@keyframes cs-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
 }
 
 .cs-pane-inspector {
@@ -242,7 +283,8 @@
   border-color: var(--line-strong);
   color: var(--text-2);
 }
-@media (max-width: 1280px) {
+/* below 1500 px the search box is just its icon and key, so the actions keep their room */
+@media (max-width: 1500px) {
   .cs-tb-search {
     width: auto;
   }
@@ -262,10 +304,10 @@
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  gap: 12px;
-  height: 40px;
+  gap: var(--sp-3);
+  height: var(--tabbar-h);
   flex: none;
-  padding: 0 10px 0 6px;
+  padding: 0 var(--sp-3) 0 var(--sp-2);
   border-bottom: 1px solid var(--line);
   background: var(--surface-1);
 }
@@ -321,6 +363,8 @@
   position: relative;
   flex: 1;
   min-height: 0;
+  /* views fold their header and read-outs by the height they get (views.css, "short views") */
+  container: viewport / size;
 }
 .cs-view {
   position: absolute;

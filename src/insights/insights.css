@@ -1,8 +1,9 @@
-/* Hint strip at the top of a view (ViewInsights): one slim row per insight, coloured by severity. */
+/* Hint strip under a view's header (ViewInsights): one slim borderless row, the most important hint,
+   coloured only by a short bar and dot for its severity; "+N more" unfolds the rest in place. */
 .ins-strip {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   flex: none;
   container: hints / inline-size;
 }
@@ -10,19 +11,21 @@
   --sev: var(--text-3);
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 32px;
-  padding: 3px 4px 3px 10px;
-  border: 1px solid color-mix(in srgb, var(--sev) 30%, var(--line));
-  border-left: 3px solid var(--sev);
-  border-radius: var(--r);
-  background: color-mix(in srgb, var(--sev) 6%, var(--surface-1));
+  gap: var(--sp-2);
+  min-height: 30px;
+  padding: 0 0 0 var(--sp-3);
+  border-left: 2px solid var(--sev);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: color-mix(in srgb, var(--sev) 5%, transparent);
   animation: ins-in var(--t) var(--ease);
 }
 .ins-hint.is-bad { --sev: var(--bad); }
 .ins-hint.is-warn { --sev: var(--warn); }
-.ins-hint.is-info { --sev: var(--accent); }
+/* information, not a problem: neutral, so it never reads as the accent (or an error) */
+.ins-hint.is-info { --sev: var(--text-3); }
+/* the bar already carries the severity: the dot is kept for narrow (wrapped) rows only */
 .ins-dot {
+  display: none;
   flex: none;
   width: 7px;
   height: 7px;
@@ -47,6 +50,9 @@
   font-weight: 500;
   color: var(--text);
 }
+.ins-hint.is-info .ins-hint-title {
+  color: var(--text-2);
+}
 .ins-hint-detail {
   min-width: 0;
   overflow: hidden;
@@ -64,19 +70,32 @@
   font-variant-numeric: tabular-nums;
 }
 .ins-more {
+  flex: none;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-3);
+  font: 500 var(--fs-12) var(--font-ui);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.ins-more:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+.ins-guide {
   align-self: flex-start;
-  padding: 1px 4px;
+  margin-left: var(--sp-3);
+  padding: 1px 0;
   border: 0;
   background: none;
   color: var(--text-3);
-  font-family: var(--font-label);
-  font-weight: 600;
-  font-size: var(--fs-11);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font: 500 var(--fs-12) var(--font-ui);
   cursor: pointer;
 }
-.ins-more:hover {
+.ins-guide:hover {
   color: var(--accent);
 }
 /* narrow workspaces: the detail gives way first, then the button labels */
@@ -95,13 +114,10 @@
   .ins-hint {
     flex-wrap: wrap;
     align-items: flex-start;
-    padding: 6px 4px 4px 10px;
-  }
-  .ins-dot {
-    margin-top: 5px;
+    padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3);
   }
   .ins-hint-text {
-    flex-basis: calc(100% - 20px);
+    flex-basis: calc(100% - 80px);
     white-space: normal;
   }
   .ins-hint-detail {
@@ -109,7 +125,7 @@
   }
   .ins-hint-actions {
     flex-wrap: wrap;
-    margin-left: 7px;
+    margin-left: -6px;
   }
 }
 @keyframes ins-in {

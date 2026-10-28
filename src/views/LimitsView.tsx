@@ -49,7 +49,6 @@ export function LimitsView() {
 
   return (
     <div className="vw-view">
-      <ViewInsights view="limits" />
       <ViewHeader title="Limits"
         actions={<Segmented label="Programme" size="sm" value={crest} onChange={setCrest}
                             options={[{ value: CREST_MUSIC_DB, label: "Music · 12 dB crest" }, { value: CREST_IEC_DB, label: "Test noise · 6 dB crest" }]} />}>
@@ -57,6 +56,7 @@ export function LimitsView() {
         and tweeter from their measured response, the crossover resistors and both amplifier channels. Pink noise,
         20 Hz–20 kHz, on axis.
       </ViewHeader>
+      <ViewInsights view="limits" />
       <div className="vw-strip">
         <Readout label="Loudest clean level · 1 m" value={r.maxSpl1m.toFixed(0)} unit="dB SPL" tone="accent"
                  hint="Programme level at 1 m when the first part reaches its limit" />

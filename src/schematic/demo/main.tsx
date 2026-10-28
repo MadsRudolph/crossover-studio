@@ -42,7 +42,7 @@ function Harness() {
         <span id="focus">focus: {focus ?? "none"}</span>
       </div>
       <div style={{ minHeight: 0 }}>
-        {q.has("dock") ? <Dock collapsed={false} height={dock} onToggle={() => {}} /> : <SignalChain compact />}
+        {q.has("dock") ? <Dock collapsedPx={34} onToggle={() => {}} /> : <SignalChain compact />}
       </div>
     </div>
   );

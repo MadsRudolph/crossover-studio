@@ -110,7 +110,7 @@
 
   /* chrome sizes: the bars and columns every view shares */
   --titlebar-h: 48px;
-  --tabbar-h: 44px;
+  --tabbar-h: 40px;
   --statusbar-h: 30px;
   --dock-head-h: 34px;
   --insp-w: 320px;

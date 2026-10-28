@@ -1,6 +1,7 @@
-// Guide view (the landing view): where the design stands, the one thing to do next, and everything
-// else worth knowing, each with a small plot of the curve it is about and a button that fixes it or
-// opens the view that explains it. "Design it for me" runs the autopilot (src/engine/autopilot.ts)
+// Guide view (the landing view, the app's calm "home"): one centred column. Where the design stands,
+// then the one thing to do next (the hero), then the quieter alternatives and everything else worth
+// knowing, each with a small plot of the curve it is about and a button that fixes it or opens the view
+// that explains it. "Design it for me" runs the autopilot (src/engine/autopilot.ts)
 // and shows every step it took, with the reason and the numbers, before anything is changed. A
 // student can reach a finished, exportable design from here alone; the other views are there to look
 // deeper.
@@ -40,25 +41,21 @@ export function GuideView() {
 
   return (
     <div className="vw-view gd-view">
-      <ViewHeader title="Guide">
-        Where your design stands and what to do next. Fix things from here, or open the view that explains them.
-        “Design it for me” works out a whole design and shows each step before anything changes.
-      </ViewHeader>
-      <div className="gd-grid">
-        <div className="gd-main">
-          {a && <Standing a={a} open={open} />}
-          <Actions />
-          {status !== "idle" ? <AutopilotPanel /> : next ? (
-            <NextCard ins={next} onSkip={() => setSkipped(s => [...s, next.id])} canReset={skipped.length > 0} onReset={() => setSkipped([])} />
-          ) : (
-            <AllDone hasSkipped={skipped.length > 0} onReset={() => setSkipped([])} />
-          )}
-          {rest.length > 0 && <InsightGroups list={rest} />}
-        </div>
-        <aside className="gd-side" aria-label="More">
-          <ExampleCard />
-          {good.length > 0 && <GoodList list={good} />}
-        </aside>
+      <div className="gd-column">
+        <ExampleNote />
+        <ViewHeader title="Guide">
+          Where your design stands and what to do next. Fix things from here, or open the view that explains them.
+          “Design it for me” works out a whole design and shows each step before anything changes.
+        </ViewHeader>
+        {a && <Standing a={a} open={open} />}
+        {status !== "idle" ? <AutopilotPanel /> : next ? (
+          <NextCard ins={next} onSkip={() => setSkipped(s => [...s, next.id])} canReset={skipped.length > 0} onReset={() => setSkipped([])} />
+        ) : (
+          <AllDone hasSkipped={skipped.length > 0} onReset={() => setSkipped([])} />
+        )}
+        <Actions />
+        {rest.length > 0 && <InsightGroups list={rest} />}
+        {good.length > 0 && <GoodList list={good} />}
       </div>
     </div>
   );
@@ -74,7 +71,7 @@ function Standing({ a, open }: { a: Assessment; open: Insight[] }) {
     : worstState(checks.filter(c => STEP_CHECKS[id]?.includes(c.id)).map(c => c.state));
   const setView = useStore(s => s.setView);
   return (
-    <section className="vw-card gd-standing" aria-label="Where the design stands">
+    <section className="gd-standing" aria-label="Where the design stands">
       <button type="button" className="gd-score" onClick={() => setView("verdict")} title="Open the verdict: every criterion explained">
         <svg viewBox="0 0 64 64" className={`vd-ring is-${tone}`} aria-hidden>
           <circle cx="32" cy="32" r={R} className="vd-ring-track" />
@@ -169,8 +166,8 @@ function SevBadge({ sev }: { sev: InsightSeverity }) {
 // ---------------------------------------------------------------- the other insights
 function InsightGroups({ list }: { list: Insight[] }) {
   return (
-    <section className="vw-card gd-groups" aria-label="Everything else">
-      <header className="vw-card-head"><h2 className="vw-card-title">Everything else</h2><span className="vw-muted">{list.length} more</span></header>
+    <section className="gd-groups" aria-label="Everything else">
+      <header className="gd-sec-head"><h2 className="vw-card-title">Everything else</h2><span className="vw-muted">{list.length} more</span></header>
       {SEV_ORDER.map(sev => {
         const items = list.filter(i => i.severity === sev);
         if (!items.length) return null;
@@ -210,7 +207,7 @@ function InsightRow({ ins, quiet }: { ins: Insight; quiet?: boolean }) {
 function GoodList({ list }: { list: Insight[] }) {
   const [open, setOpen] = useState(false);
   return (
-    <section className="vw-card gd-good" aria-label="What's already right">
+    <section className="gd-good" aria-label="What's already right">
       <button type="button" className="gd-good-head" aria-expanded={open} onClick={() => setOpen(o => !o)}>
         {open ? <ChevronDown size={14} aria-hidden /> : <ChevronRight size={14} aria-hidden />}
         <span className="vw-card-title">What's already right</span>
@@ -226,31 +223,32 @@ function Actions() {
   const status = useAutopilot(s => s.status);
   const hasSnap = useStore(s => s.snapshots.length);
   return (
-    <section className="vw-card gd-big" aria-label="Actions">
-      <button type="button" className="gd-big-btn is-primary" onClick={startAutopilot} disabled={status === "running"}>
-        <Sparkles size={18} aria-hidden />
-        <span><b>Design it for me</b><small>Box, MiniDSP, filters and parts, step by step. Nothing changes until you accept.</small></span>
-      </button>
-      <button type="button" className="gd-big-btn" onClick={openExport}>
-        <Download size={18} aria-hidden />
-        <span><b>Export everything</b><small>MiniDSP biquads, LTspice, parts list and the report.</small></span>
-      </button>
-      <button type="button" className="gd-big-btn" onClick={snapshotNow}>
-        <Camera size={18} aria-hidden />
-        <span><b>Snapshot</b><small>{hasSnap ? `Keep this version to compare (${hasSnap} saved).` : "Keep this version to compare against later."}</small></span>
-      </button>
+    <section className="gd-big" aria-label="Actions">
+      <span className="gd-big-or">Or</span>
+      <Button variant="subtle" icon={Sparkles} onClick={startAutopilot} disabled={status === "running"}
+              title="Box, MiniDSP, filters and parts, step by step. Nothing changes until you accept. (D)">
+        Design it for me
+      </Button>
+      <Button variant="ghost" icon={Download} onClick={openExport} title="MiniDSP biquads, LTspice, parts list and the report. (E)">
+        Export everything
+      </Button>
+      <Button variant="ghost" icon={Camera} onClick={snapshotNow}
+              title={hasSnap ? `Keep this version to compare (${hasSnap} saved). (S)` : "Keep this version to compare against later. (S)"}>
+        Snapshot{hasSnap ? <span className="gd-big-count mono">{hasSnap}</span> : null}
+      </Button>
     </section>
   );
 }
 
-function ExampleCard() {
+/** A slim line above the header while the bundled example is open: the way to one's own data. */
+function ExampleNote() {
   const profile = useStore(s => s.profile);
   const setUi = useStore(s => s.setUi);
   if (!profile || !BUNDLED_PROFILES.some(p => p.id === profile.id)) return null;
   return (
-    <section className="vw-card gd-example" aria-label="Your own measurements">
+    <section className="gd-example" aria-label="Your own measurements">
       <p><b>This is the bundled example</b> ({profile.name}). Import your group's Lab D and Lab E measurements to design your own speaker.</p>
-      <Button size="sm" variant="subtle" icon={Import} onClick={() => setUi({ wizard: true })}>Import measurements</Button>
+      <Button size="sm" variant="ghost" icon={Import} onClick={() => setUi({ wizard: true })}>Import measurements</Button>
     </section>
   );
 }
