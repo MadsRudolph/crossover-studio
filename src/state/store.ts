@@ -8,7 +8,7 @@ import { compute, fitBox, prepare, type Prepared } from "../engine";
 import bundledSystemD from "../../profiles/system-d-group10/profile.json";
 import defaultDesignRaw from "../../fixtures/design.json";
 
-export type ViewId = "system" | "verdict" | "response" | "phase" | "impedance" | "filters" | "box" | "directivity" | "compare" | "listen" | "built";
+export type ViewId = "guide" | "system" | "verdict" | "response" | "phase" | "impedance" | "filters" | "box" | "directivity" | "compare" | "listen" | "built" | "time" | "sensitivity" | "limits" | "listentest";
 export type Theme = "dark" | "light" | "system";
 
 export interface Snapshot { id: string; name: string; color: string; design: Design; results: Results }
@@ -27,6 +27,8 @@ export interface UiState {
   commandPalette: boolean;
   wizard: boolean;
   exportSheet: boolean;
+  /** The optional AI chat panel (right side of the workspace). */
+  chat: boolean;
 }
 
 export interface State {
@@ -112,7 +114,7 @@ function persisted(): Partial<Pick<State, "theme" | "view">> & { designs?: Recor
   try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); } catch { return {}; }
 }
 
-const VIEW_IDS: readonly ViewId[] = ["system", "verdict", "response", "phase", "impedance", "filters", "box", "directivity", "compare", "listen", "built"];
+const VIEW_IDS: readonly ViewId[] = ["guide", "system", "verdict", "response", "phase", "impedance", "filters", "box", "directivity", "compare", "listen", "built", "time", "sensitivity", "limits", "listentest"];
 
 /** `?view=<id>` opens a given view (deep links, screenshots); it is not remembered over the user's own choice. */
 function urlView(): ViewId | undefined {
@@ -136,11 +138,11 @@ export const useStore = create<State>()((set, get) => ({
   results: null, error: null,
   history: [], future: [], gestureBase: null, snapshots: [],
   probe: 1000,
-  view: urlView() ?? persisted().view ?? "system",
+  view: urlView() ?? persisted().view ?? "guide",
   theme: persisted().theme ?? "dark",
   ui: { xray: false, waves: true, animate: true, angle: "0", visible: { woof: true, mid: true, tw: true, sum: true },
         showTolerance: false, showPowerSum: false, focus: null, commandPalette: false,
-        wizard: urlSheet() === "import", exportSheet: urlSheet() === "export" },
+        wizard: urlSheet() === "import", exportSheet: urlSheet() === "export", chat: false },
 
   loadProfile(profile) {
     try {
