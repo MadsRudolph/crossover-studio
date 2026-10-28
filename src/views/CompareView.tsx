@@ -12,6 +12,7 @@ import { SNAP_COLORS, useStore, type Snapshot } from "../state/store";
 import type { Design, Results } from "../types";
 import { Card, ViewHeader, crossoverLines, judgeBand, splitHeights, useProbe, useSize } from "./common";
 import { METRIC_ROWS, db, diff, levelAt, responseRange } from "./data";
+import { ViewInsights } from "../insights/ViewInsights";
 
 export const CURRENT = "current";
 
@@ -92,6 +93,7 @@ export function CompareView() {
         Snapshots freeze a design and its results. Overlay their sums on the current design, pick any two as A and B to see
         the difference and what changed in the numbers, and restore one with a click.
       </ViewHeader>
+      <ViewInsights view="compare" />
       <div className="vw-compare">
         <aside className="vw-cmp-side">
           <Card title="Snapshots" actions={<span className="vw-muted mono">{snapshots.length}</span>}>

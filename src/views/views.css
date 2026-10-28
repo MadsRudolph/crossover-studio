@@ -6,15 +6,16 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  padding: 14px 16px 12px;
-  gap: 10px;
+  padding: var(--pad-view);
+  gap: var(--gap-view);
   /* the plots size themselves to the space left; below their minimum the view scrolls instead of clipping */
   overflow-y: auto;
 }
+/* the view header: a plain title, one lead paragraph (folded to two lines), the view's own tools */
 .vw-head {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: var(--sp-4);
 }
 .vw-head-text {
   flex: 1;
@@ -22,26 +23,60 @@
 }
 .vw-title {
   margin: 0;
-  font-family: var(--font-label);
-  font-weight: 700;
-  font-size: var(--fs-13);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: var(--fs-18);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.005em;
   color: var(--text);
 }
 .vw-lede {
-  margin: 4px 0 0;
-  max-width: 110ch;
+  margin: 6px 0 0;
+  max-width: var(--measure);
   font-size: var(--fs-13);
-  line-height: 1.45;
+  line-height: var(--lh);
   color: var(--text-2);
+}
+/* folded: two lines, the rest one click away ("More"); the choice is remembered for every view */
+.vw-lede.is-folded {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+.vw-lede-wrap {
+  position: relative;
+  max-width: var(--measure);
+}
+/* "More" sits over the end of the second line, on a fade, so folding costs no extra line */
+.vw-lede-more {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 0 2px 0 var(--sp-7);
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(to right, transparent, var(--bg) var(--sp-6));
+  color: var(--text-3);
+  font: 500 var(--fs-12) / var(--lh) var(--font-ui);
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease);
+}
+.vw-lede-more:hover {
+  color: var(--accent);
+}
+.vw-lede-wrap.is-open .vw-lede-more {
+  position: static;
+  padding: 0;
+  background: none;
 }
 .vw-head-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--sp-3);
   flex-shrink: 0;
-  padding-top: 1px;
+  min-height: 28px;
 }
 .vw-plots {
   position: relative;
@@ -52,7 +87,7 @@
 .vw-col {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--sp-3);
   height: 100%;
   min-height: 0;
 }
@@ -69,7 +104,8 @@
   font-size: var(--fs-12);
 }
 .vw-foot {
-  margin: 10px 0 0;
+  margin: var(--sp-3) 0 0;
+  max-width: var(--measure);
   font-size: var(--fs-11);
   line-height: 1.45;
   color: var(--text-3);
@@ -92,7 +128,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;
-  gap: 6px;
+  gap: var(--sp-2) 0;
 }
 .vw-strip-note {
   align-self: center;
@@ -100,26 +136,35 @@
   font-size: var(--fs-12);
   color: var(--text-3);
 }
+/* A read-out is a label over a number, not a box: read-outs in a row are parted by a hairline, and a
+   state shows as the colour of that line and of the number. */
 .vw-ro {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 1px;
+  gap: 2px;
   min-width: 84px;
-  padding: 5px 10px 6px;
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  background: var(--surface-1);
+  padding: 2px var(--sp-5) 2px var(--sp-3);
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
   text-align: left;
   color: inherit;
   font: inherit;
 }
+.vw-strip > .vw-ro:first-child,
+.vw-strip > :not(.vw-ro) + .vw-ro {
+  padding-left: 0;
+  border-left: 0;
+}
 .vw-ro.is-action {
   cursor: pointer;
-  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  transition: background var(--t-fast) var(--ease);
 }
 .vw-ro.is-action:hover {
-  border-color: var(--line-strong);
   background: var(--surface-hover);
 }
 .vw-ro-label {
@@ -132,7 +177,8 @@
   white-space: nowrap;
 }
 .vw-ro-value {
-  font-size: var(--fs-15);
+  font-size: var(--fs-18);
+  line-height: var(--lh-tight);
   font-variant-numeric: tabular-nums;
   color: var(--text);
   white-space: nowrap;
@@ -142,21 +188,31 @@
   font-size: var(--fs-11);
   color: var(--text-3);
 }
-.vw-ro.is-good { box-shadow: inset 2px 0 0 var(--good); }
-.vw-ro.is-warn { box-shadow: inset 2px 0 0 var(--warn); }
-.vw-ro.is-bad { box-shadow: inset 2px 0 0 var(--bad); }
+.vw-ro.is-good { border-left-color: color-mix(in srgb, var(--good) 70%, transparent); }
+.vw-ro.is-warn { border-left-color: var(--warn); }
+.vw-ro.is-bad { border-left-color: var(--bad); }
+.vw-strip > .vw-ro.is-good:first-child,
+.vw-strip > .vw-ro.is-warn:first-child,
+.vw-strip > .vw-ro.is-bad:first-child {
+  padding-left: var(--sp-3);
+  border-left: 2px solid;
+}
+.vw-strip > .vw-ro.is-good:first-child { border-left-color: color-mix(in srgb, var(--good) 70%, transparent); }
+.vw-strip > .vw-ro.is-warn:first-child { border-left-color: var(--warn); }
+.vw-strip > .vw-ro.is-bad:first-child { border-left-color: var(--bad); }
 .vw-ro.is-good .vw-ro-value { color: var(--good); }
 .vw-ro.is-warn .vw-ro-value { color: var(--warn); }
 .vw-ro.is-bad .vw-ro-value { color: var(--bad); }
 
 /* ------------------------------------------------------------------ cards */
+/* A card is one quiet surface on the workspace: a soft hairline, no shadow, the same padding everywhere.
+   Cards never nest; inside a card, group with space and --line-soft rules instead. */
 .vw-card {
   display: block;
-  padding: 12px 14px 14px;
-  border: 1px solid var(--line);
+  padding: var(--pad-card);
+  border: 1px solid var(--line-soft);
   border-radius: var(--r-lg);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-1);
+  background: var(--surface-card);
   color: inherit;
   font: inherit;
   text-align: left;
@@ -164,18 +220,41 @@
 .vw-card-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: var(--sp-2);
+  min-height: 24px;
+  margin-bottom: var(--gap-card);
+}
+.vw-card-head:has(.vw-card-sub) {
+  align-items: flex-start;
+}
+.vw-card-titles {
+  flex: 1;
+  min-width: 0;
+}
+.vw-card-titles > .vw-card-title {
+  flex: none;
+}
+.vw-card-sub {
+  margin: 2px 0 0;
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+/* a divider inside a card, where a nested box would be one border too many */
+.vw-rule {
+  height: 1px;
+  margin: var(--sp-3) 0;
+  border: 0;
+  background: var(--line-soft);
 }
 .vw-card-title {
   flex: 1;
   margin: 0;
   font-family: var(--font-label);
   font-weight: 600;
-  font-size: var(--fs-12);
+  font-size: var(--fs-11);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-2);
+  color: var(--text-3);
 }
 .vw-card-actions {
   display: flex;
@@ -225,31 +304,31 @@
   grid-template-columns: minmax(0, 1fr) 340px;
   grid-template-rows: minmax(0, 1fr) minmax(170px, 30%);
   grid-template-areas: "stage side" "plot side";
-  gap: 10px;
+  gap: var(--sp-3);
   height: 100%;
-  padding: 10px 12px 10px 10px;
+  padding: var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-3);
 }
 .vw-sys-stage {
   grid-area: stage;
   min-height: 0;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-soft);
   border-radius: var(--r-lg);
   overflow: hidden;
 }
 .vw-sys-plot {
   grid-area: plot;
   min-height: 0;
-  padding: 6px 6px 6px 4px;
-  border: 1px solid var(--line);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  border: 1px solid var(--line-soft);
   border-radius: var(--r-lg);
-  background: var(--surface-1);
+  background: var(--surface-card);
   overflow: hidden;
 }
 .vw-sys-side {
   grid-area: side;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--sp-3);
   min-height: 0;
   overflow-y: auto;
   padding-right: 2px;
@@ -495,9 +574,9 @@
 .vw-dialcard {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--sp-3);
   min-width: 240px;
-  padding: 8px 14px 8px 10px;
+  padding: var(--sp-2) var(--sp-4) var(--sp-2) var(--sp-3);
   box-shadow: none;
 }
 .vw-dialcard.is-action {
@@ -521,8 +600,8 @@
 /* ------------------------------------------------------------------ box view */
 .vw-box {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) var(--side-w);
+  gap: var(--gap-view);
   flex: 1;
   min-height: 0;
 }
@@ -530,7 +609,7 @@
 .vw-box-side {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--sp-3);
   min-height: 0;
   overflow-y: auto;
 }
@@ -593,7 +672,7 @@
 .vw-dir {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 290px;
-  gap: 12px;
+  gap: var(--gap-view);
   flex: 1;
   min-height: 0;
 }
@@ -647,14 +726,14 @@
 .vw-compare {
   display: grid;
   grid-template-columns: 360px minmax(0, 1fr);
-  gap: 12px;
+  gap: var(--gap-view);
   flex: 1;
   min-height: 0;
 }
 .vw-cmp-side {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--sp-3);
   min-height: 0;
   overflow-y: auto;
 }
@@ -823,6 +902,13 @@
 .vw-diff tr:last-child th,
 .vw-diff tr:last-child td { border-bottom: 0; }
 
+/* small windows (1100-1280 px, or short ones): the same rhythm, one step tighter */
+@media (max-width: 1280px), (max-height: 760px) {
+  .vw-view {
+    padding: var(--sp-4) var(--sp-5) var(--sp-4);
+    gap: var(--sp-3);
+  }
+}
 @media (max-width: 1280px) {
   .vw-compare { grid-template-columns: 320px minmax(0, 1fr); }
   .vw-dir { grid-template-columns: minmax(0, 1fr) 250px; }

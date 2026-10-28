@@ -126,8 +126,8 @@
 .cs-tooltip {
   position: fixed;
   z-index: 1000;
-  max-width: 300px;
-  padding: 7px 10px;
+  max-width: 320px;
+  padding: var(--sp-2) var(--sp-3);
   border-radius: var(--r);
   background: var(--surface-2);
   border: 1px solid var(--line-strong);
@@ -660,7 +660,8 @@
   background: var(--dot);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot) 16%, transparent);
 }
-.cs-dot-good { --dot: var(--good); }
+/* passing is quiet: no halo, so the eye goes to the amber and red dots */
+.cs-dot-good { --dot: var(--good); box-shadow: none; }
 .cs-dot-warn { --dot: var(--warn); }
 .cs-dot-bad { --dot: var(--bad); }
 .cs-dot-busy { --dot: var(--accent); animation: cs-breathe 1.2s var(--ease) infinite; }
@@ -685,8 +686,8 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--surface-1);
-  border: 1px solid var(--line);
+  background: var(--surface-card);
+  border: 1px solid var(--line-soft);
   border-radius: var(--r-lg);
 }
 .cs-panel.is-raised {
@@ -697,18 +698,18 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 38px;
-  padding: 0 10px 0 14px;
-  border-bottom: 1px solid var(--line);
+  min-height: 40px;
+  padding: 0 var(--sp-3) 0 var(--pad-card);
+  border-bottom: 1px solid var(--line-soft);
 }
 .cs-panel-title {
   flex: 1;
   font-family: var(--font-label);
   font-weight: 600;
-  font-size: var(--fs-12);
+  font-size: var(--fs-11);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-2);
+  color: var(--text-3);
 }
 .cs-panel-actions {
   display: flex;
@@ -718,7 +719,7 @@
 .cs-panel-body {
   flex: 1;
   min-height: 0;
-  padding: 14px;
+  padding: var(--pad-card);
 }
 .cs-panel-body.is-flush {
   padding: 0;
@@ -742,9 +743,9 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 50px;
-  padding: 0 12px 0 14px;
+  gap: var(--sp-3);
+  height: 52px;
+  padding: 0 var(--sp-3) 0 var(--sp-4);
   border: 0;
   background: transparent;
   text-align: left;
@@ -785,7 +786,7 @@
   color: var(--text);
 }
 .cs-section-summary {
-  margin-top: 3px;
+  margin-top: 4px;
   font-size: var(--fs-11);
   color: var(--text-3);
   white-space: nowrap;
@@ -799,6 +800,27 @@
 }
 .cs-section.is-open .cs-section-chev {
   transform: none;
+}
+/* the step being edited: a thin rule in its colour down the left edge */
+.cs-section::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--step-color);
+  opacity: 0;
+  transition: opacity var(--t) var(--ease);
+  pointer-events: none;
+  z-index: 3;
+}
+.cs-section.is-open::before {
+  opacity: 0.55;
+}
+/* a folded step reads as a quiet row; its summary carries the settings */
+.cs-section:not(.is-open) .cs-section-title {
+  color: var(--text-2);
 }
 .cs-section-actions {
   padding-right: 10px;
@@ -816,10 +838,10 @@
   overflow: hidden;
 }
 .cs-section-body {
-  padding: 2px 14px 16px;
+  padding: var(--sp-1) var(--sp-4) var(--sp-5);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--sp-3);
   opacity: 0;
   transform: translateY(-4px);
   transition: opacity var(--t) var(--ease), transform var(--t) var(--ease);
@@ -991,6 +1013,71 @@
   background: var(--accent);
   transition: transform var(--t) var(--ease), width var(--t) var(--ease);
 }
+/* grouped strips: a small label and a hairline before each group */
+.cs-tabs-group {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 6px;
+  padding: 0 2px 0 4px;
+}
+.cs-tabs-group.has-rule::before {
+  content: "";
+  width: 1px;
+  height: 16px;
+  margin-right: 4px;
+  background: var(--line-strong);
+}
+.cs-tabs-group-label {
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: var(--fs-11);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  opacity: 0.7;
+  white-space: nowrap;
+}
+.cs-tabs-group.is-active .cs-tabs-group-label {
+  color: var(--text-2);
+}
+/* collapsing strips (Tabs collapse): data-density steps from "full" to "compact" until it fits */
+.cs-tabs[data-density="tight"] .cs-tab,
+.cs-tabs[data-density="group"] .cs-tab,
+.cs-tabs[data-density="compact"] .cs-tab,
+.cs-tabs[data-density="tiny"] .cs-tab {
+  gap: 5px;
+  padding: 0 7px;
+  letter-spacing: 0.04em;
+}
+.cs-tabs[data-density="group"] .cs-tab.is-other-group,
+.cs-tabs[data-density="compact"] .cs-tab:not(.is-on) {
+  padding: 0 7px;
+}
+.cs-tabs[data-density="tiny"] {
+  gap: 0;
+}
+.cs-tabs[data-density="tiny"] .cs-tab:not(.is-on) {
+  padding: 0 5px;
+}
+.cs-tabs[data-density="tiny"] .cs-tabs-group {
+  padding: 0 1px;
+}
+.cs-tabs[data-density="group"] .cs-tab.is-other-group .cs-tab-label,
+.cs-tabs[data-density="compact"] .cs-tab:not(.is-on) .cs-tab-label,
+.cs-tabs[data-density="tiny"] .cs-tab:not(.is-on) .cs-tab-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.cs-tabs[data-density="group"] .cs-tabs-group:not(.is-active) .cs-tabs-group-label,
+.cs-tabs[data-density="compact"] .cs-tabs-group-label,
+.cs-tabs[data-density="tiny"] .cs-tabs-group-label {
+  display: none;
+}
 
 /* ------------------------------------------------------------------ dialog, sheet */
 .cs-dialog-layer {
@@ -1039,8 +1126,8 @@
 .cs-dialog-head {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 18px 16px 12px 20px;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--sp-4) var(--sp-3) var(--sp-6);
 }
 .cs-dialog-titles {
   flex: 1;
@@ -1053,20 +1140,21 @@
   color: var(--text);
 }
 .cs-dialog-desc {
-  margin-top: 3px;
+  margin-top: var(--sp-1);
+  max-width: var(--measure);
   color: var(--text-2);
 }
 .cs-dialog-body {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 4px 20px 20px;
+  padding: var(--sp-1) var(--sp-6) var(--sp-6);
 }
 .cs-dialog-foot {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 12px 16px;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
   border-top: 1px solid var(--line);
   background: color-mix(in srgb, var(--surface-1) 70%, var(--bg));
   border-radius: 0 0 var(--r-lg) var(--r-lg);

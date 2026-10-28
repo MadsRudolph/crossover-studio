@@ -151,6 +151,8 @@ function texSection(s: ReportSection): string {
     ...s.tables.flatMap(t => [texTable(t), ""]),
     ...s.code.flatMap(c => [texCode(c), ""]),
     ...s.figures.flatMap(f => [texFigure(f), ""]),
+    ...(s.rawFigures ?? []).flatMap(f => [f.tex, ""]),
+    ...(s.outro ?? []).flatMap(p => [texEscape(p), ""]),
   ].join("\n");
 }
 

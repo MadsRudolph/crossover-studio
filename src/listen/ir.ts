@@ -68,7 +68,7 @@ export function unwrap(ph: ArrayLike<number>): Float64Array {
  * 8 kHz and a plain unwrap would miss whole turns.
  */
 export function estimateDelay(f: ArrayLike<number>, z: CArray, lo = 1000, hi = 8000,
-                              search: [number, number] = [-0.01, 0.05]): { tau: number; phi0: number } {
+                              search: [number, number] = [-0.05, 0.05]): { tau: number; phi0: number } {
   const ks: number[] = [];
   for (let i = 0; i < f.length; i++) if (f[i] >= lo && f[i] <= hi && Math.hypot(z.re[i], z.im[i]) > 0) ks.push(i);
   if (ks.length < 3) return { tau: 0, phi0: 0 };

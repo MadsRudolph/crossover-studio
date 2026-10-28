@@ -1,0 +1,497 @@
+/* The optional AI chat panel (src/chat/ChatPanel.tsx). Tokens only, so both themes work. */
+
+.cs-pane-chat {
+  background: var(--surface-1);
+  border-left: 1px solid var(--line);
+}
+
+.cs-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+}
+.cs-chat-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 35px;
+  flex: none;
+  padding: 0 6px 0 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text-2);
+}
+.cs-chat-head .label-caps {
+  color: var(--text-2);
+}
+.cs-chat-spacer {
+  flex: 1;
+}
+
+/* ------------------------------------------------------------------ messages */
+.cs-chat-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+.cs-chat-msg {
+  font-size: var(--fs-13);
+  line-height: 1.5;
+  color: var(--text);
+  overflow-wrap: anywhere;
+  animation: cs-chat-in var(--t) var(--ease);
+}
+.cs-chat-msg.is-user {
+  align-self: flex-end;
+  max-width: 88%;
+  padding: 7px 11px;
+  border-radius: var(--r-lg) var(--r-lg) var(--r-sm) var(--r-lg);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  white-space: pre-wrap;
+}
+.cs-chat-msg.is-assistant {
+  padding: 2px 2px 0;
+}
+.cs-chat-msg.is-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 11px;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--bad);
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+@keyframes cs-chat-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.cs-chat-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+.cs-chat-tools li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  color: var(--text-3);
+  font-size: var(--fs-11);
+}
+
+.cs-chat-typing {
+  display: inline-flex;
+  gap: 4px;
+  padding: 6px 0;
+}
+.cs-chat-typing i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-3);
+  animation: cs-chat-dot 1.2s var(--ease) infinite;
+}
+.cs-chat-typing i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.cs-chat-typing i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes cs-chat-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+/* markdown inside an answer */
+.cs-md p,
+.cs-md ul,
+.cs-md ol,
+.cs-md pre {
+  margin: 0 0 8px;
+}
+.cs-md > :last-child {
+  margin-bottom: 0;
+}
+.cs-md ul,
+.cs-md ol {
+  padding-left: 18px;
+}
+.cs-md li + li {
+  margin-top: 2px;
+}
+.cs-md .cs-md-h {
+  font-weight: 600;
+  margin-top: 4px;
+}
+.cs-md strong {
+  font-weight: 600;
+}
+.cs-md code,
+.cs-md pre {
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+  font-variant-numeric: tabular-nums;
+}
+.cs-md code {
+  padding: 1px 4px;
+  border-radius: var(--r-sm);
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+}
+.cs-md pre {
+  padding: 8px 10px;
+  border-radius: var(--r);
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  overflow-x: auto;
+  white-space: pre;
+}
+.cs-md a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ empty state and starters */
+.cs-chat-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: auto 0;
+  padding: 8px 4px;
+}
+.cs-chat-empty-title {
+  margin: 0;
+  font-size: var(--fs-15);
+  font-weight: 600;
+  color: var(--text);
+}
+.cs-chat-empty-desc {
+  margin: 0;
+  font-size: var(--fs-13);
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.cs-chat-starters {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.cs-chat-starter {
+  text-align: left;
+  padding: 8px 11px;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-13);
+  line-height: 1.4;
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.cs-chat-starter:hover {
+  border-color: var(--accent-line);
+  background: var(--surface-hover);
+}
+.cs-chat-starter:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+/* ------------------------------------------------------------------ composer */
+.cs-chat-compose {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  flex: none;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--line);
+}
+.cs-chat-input {
+  flex: 1;
+  min-width: 0;
+  max-height: 160px;
+  resize: none;
+  padding: 7px 10px;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+  background: var(--surface-3);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-13);
+  line-height: 1.45;
+  outline: none;
+  field-sizing: content;
+  min-height: 52px;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.cs-chat-input::placeholder,
+.cs-chat-field::placeholder {
+  color: var(--text-3);
+}
+.cs-chat-input:focus,
+.cs-chat-field:focus {
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* ------------------------------------------------------------------ proposal card */
+.cs-chat-proposal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
+  animation: cs-chat-in var(--t) var(--ease);
+}
+.cs-chat-proposal.is-dismissed {
+  opacity: 0.6;
+}
+.cs-chat-proposal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cs-chat-score {
+  font-size: var(--fs-13);
+  font-weight: 500;
+}
+.cs-chat-score.is-good,
+.cs-chat-proposal-effects .is-good {
+  color: var(--good);
+}
+.cs-chat-score.is-bad,
+.cs-chat-proposal-effects .is-bad {
+  color: var(--bad);
+}
+.cs-chat-score.is-neutral,
+.cs-chat-proposal-effects .is-neutral {
+  color: var(--text-2);
+}
+.cs-chat-proposal-why {
+  margin: 0;
+  font-size: var(--fs-13);
+  line-height: 1.45;
+}
+.cs-chat-proposal-list,
+.cs-chat-proposal-effects {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-12);
+}
+.cs-chat-proposal-list li {
+  padding: 2px 0;
+  color: var(--text);
+}
+.cs-chat-proposal-effects li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 0;
+  color: var(--text-2);
+  border-top: 1px solid var(--line);
+}
+.cs-chat-proposal-effects .mono {
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.cs-chat-proposal-note {
+  margin: 0;
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  color: var(--text-3);
+}
+.cs-chat-proposal-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* ------------------------------------------------------------------ settings card */
+.cs-chat-settings {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 14px 12px;
+}
+.cs-chat-settings-intro {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.cs-chat-settings-intro > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cs-chat-settings-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  color: var(--accent);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.cs-chat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cs-chat-label {
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: var(--fs-11);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.cs-chat-keyrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cs-chat-keyhint {
+  flex: 1;
+  font-size: var(--fs-12);
+  color: var(--text-2);
+}
+.cs-chat-field {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+  background: var(--surface-3);
+  color: var(--text);
+  font-size: var(--fs-12);
+  outline: none;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.cs-chat-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--fs-12);
+  cursor: pointer;
+}
+.cs-chat-link:hover {
+  text-decoration: underline;
+}
+.cs-chat-result {
+  margin: 0;
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  padding: 6px 9px;
+  border-radius: var(--r);
+  background: var(--surface-2);
+  border-left: 3px solid currentColor;
+}
+.cs-chat-result.is-good {
+  color: var(--good);
+}
+.cs-chat-result.is-bad {
+  color: var(--bad);
+}
+.cs-chat-note {
+  margin: 0;
+  font-size: var(--fs-12);
+  line-height: 1.5;
+  color: var(--text-3);
+}
+.cs-chat-model {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease);
+}
+.cs-chat-model:hover {
+  border-color: var(--line-strong);
+}
+.cs-chat-model.is-on {
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.cs-chat-model input {
+  accent-color: var(--accent);
+  margin: 0;
+}
+.cs-chat-model-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.cs-chat-model-name {
+  font-size: var(--fs-13);
+  font-weight: 500;
+  color: var(--text);
+}
+.cs-chat-model-note {
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+.cs-chat-model-cost {
+  font-size: var(--fs-11);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-chat-msg,
+  .cs-chat-proposal {
+    animation: none;
+  }
+  .cs-chat-typing i {
+    animation-duration: 2.4s;
+  }
+}

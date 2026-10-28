@@ -6,6 +6,7 @@ import type { Assessment, BoxFitEx, Prepared } from "../../engine";
 import { GROUPS, TOPOLOGY_LIBRARY, ALIGNMENTS } from "../../engine";
 import type { Design, Profile, Results } from "../../types";
 import { bom, type BomKind } from "../parts";
+import type { ListeningInput } from "./listening";
 
 // ---------------------------------------------------------------- units
 export interface Unit {
@@ -106,6 +107,8 @@ export interface ReportInput {
   results: Results;
   assessment: Assessment;
   designName: string;
+  /** The listening test (protocol and ratings); its subsection is written only when ratings exist. */
+  listening?: ListeningInput | null;
 }
 
 const BOX_MODE: Record<Design["box"]["mode"], string> = {

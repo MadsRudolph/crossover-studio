@@ -10,38 +10,79 @@
 
 .insp-head {
   flex: none;
-  padding: 12px 14px 12px;
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-2);
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 60%, var(--surface-1)), var(--surface-1));
 }
-.insp-head-title {
+.insp-head-row {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: var(--sp-1);
+}
+/* the system name with its three driver dots; the driver names fold out underneath */
+.insp-head-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 32px;
+  padding: 0 var(--sp-2);
+  border: 0;
+  border-radius: var(--r);
+  background: transparent;
+  text-align: left;
+  transition: background var(--t-fast) var(--ease);
+}
+.insp-head-toggle:hover {
+  background: var(--surface-hover);
+}
+.insp-head-dots {
+  display: inline-flex;
+  gap: 3px;
+  flex: none;
 }
 .insp-head-name {
+  flex: 0 1 auto;
+  min-width: 0;
   font-weight: 600;
-  font-size: var(--fs-15);
+  font-size: var(--fs-14);
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.insp-head-chev {
+  flex: none;
+  margin-right: auto;
+  color: var(--text-3);
+  transform: rotate(-90deg);
+  transition: transform var(--t) var(--ease);
+}
+.insp-head.is-open .insp-head-chev {
+  transform: none;
+}
 .insp-units {
   list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
+  margin: var(--sp-1) 0 var(--sp-1);
+  padding: 0 var(--sp-2);
   display: flex;
   flex-direction: column;
   gap: 3px;
+  animation: cs-view-in var(--t) var(--ease);
 }
 .insp-units li {
   display: grid;
   grid-template-columns: 8px 62px 1fr;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
   font-size: var(--fs-12);
   min-width: 0;
+}
+.insp-units li.insp-units-notes {
+  display: block;
+  margin-top: var(--sp-1);
+  color: var(--text-3);
+  line-height: var(--lh);
 }
 .insp-unit-dot {
   width: 8px;
@@ -57,6 +98,55 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ------------------------------------------------------------------ icon rail (a narrow column) */
+.insp.is-rail {
+  align-items: center;
+}
+.insp-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) 0;
+}
+.insp-rail-step {
+  --step-color: var(--accent);
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r);
+  background: transparent;
+  transition: background var(--t-fast) var(--ease);
+}
+.insp-rail-step:hover {
+  background: var(--surface-hover);
+}
+.insp-rail-num {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: var(--fs-12);
+  color: var(--step-color);
+  background: color-mix(in srgb, var(--step-color) 13%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--step-color) 40%, transparent) inset;
+}
+.insp-rail-step.is-open .insp-rail-num {
+  box-shadow: 0 0 0 1.5px var(--step-color) inset;
+}
+.insp-rail-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  transform: scale(0.8);
 }
 
 .insp-scroll {
@@ -77,17 +167,28 @@
   color: var(--text-3);
 }
 
+/* read-only results under a step's controls: a quiet well, not another box */
 .insp-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  padding: 9px 10px;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
   border-radius: var(--r);
   background: var(--surface-3);
-  border: 1px solid var(--line);
 }
 .insp-stats:has(> :only-child) {
   grid-template-columns: 1fr;
+}
+
+.insp-note {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  border-left: 2px solid var(--warn);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: var(--surface-3);
+  font-size: var(--fs-12);
+  line-height: var(--lh);
+  color: var(--text-2);
 }
 
 .insp-fit {
@@ -193,7 +294,7 @@
 }
 
 .insp-foot {
-  padding: 14px 16px 22px;
+  padding: var(--sp-4) var(--sp-4) var(--sp-6);
   font-size: var(--fs-12);
   color: var(--text-3);
 }

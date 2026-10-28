@@ -1,6 +1,8 @@
-// Crossover Studio backend: file IO and parsing only. All acoustics lives in the TypeScript engine.
+// Crossover Studio backend: file IO and parsing, plus the optional AI chat's HTTPS call (ai.rs).
+// All acoustics lives in the TypeScript engine.
 // Command signatures are fixed by src/platform/index.ts; keep them in sync.
 
+pub mod ai;
 pub mod commands;
 pub mod mat;
 pub mod profile;
@@ -20,7 +22,12 @@ pub fn run() {
             commands::load_profile,
             commands::save_profile,
             commands::write_text_file,
-            commands::write_binary_file
+            commands::write_binary_file,
+            ai::ai_key_status,
+            ai::ai_set_key,
+            ai::ai_test_key,
+            ai::ai_chat,
+            ai::ai_cancel
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

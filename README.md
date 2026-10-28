@@ -62,7 +62,8 @@ Installers are on the [Releases page](https://github.com/MadsRudolph/crossover-s
   distributions need FUSE 2 for AppImages (`fuse2` on Arch, `libfuse2` on Ubuntu 22.04+).
 - **Debian/Ubuntu:** `sudo apt install ./Crossover.Studio_<version>_amd64.deb`.
 
-The app works fully offline. It needs no account and makes no network requests.
+The app works fully offline. It needs no account and makes no network requests, unless you turn on the optional
+AI chat: that sends your design summary and your questions to OpenRouter, with your own API key.
 
 ## Quick start: the bundled example
 

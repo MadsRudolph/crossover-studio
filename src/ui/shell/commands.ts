@@ -13,6 +13,9 @@ import { useOptimiser, toggleOptimiser } from "./optimiser";
 import { useShell } from "./shellState";
 import { viewKey } from "./viewKeys";
 import { pickAndOpenProfile } from "../../wizard/profiles";
+import { Wand2 } from "lucide-react";
+import { MessagesSquare } from "lucide-react";
+import { designItForMe, useAutopilot } from "../../views/autopilotRun";
 
 export interface Command {
   id: string;
@@ -135,6 +138,8 @@ export function buildCommands(): Command[] {
   cmds.push(
     { id: "design.optimise", title: opt.running ? "Stop optimiser" : "Optimise design", section: "Design", shortcut: "O", icon: Sparkles,
       keywords: "auto tune best search improve", disabled: !has && !opt.running, run: toggleOptimiser },
+    { id: "design.autopilot", title: useAutopilot.getState().status === "running" ? "Show the autopilot's progress" : "Design it for me", section: "Design", shortcut: "D",
+      icon: Wand2, keywords: "autopilot automatic guide whole design box crossover filters", disabled: !has, run: designItForMe },
     { id: "design.snapshot", title: "Take snapshot", section: "Design", shortcut: "S", icon: Camera, keywords: "save compare reference",
       disabled: !has, run: snapshotNow },
     { id: "design.undo", title: "Undo", section: "Design", shortcut: "Mod+Z", icon: Undo2, disabled: !s.history.length, run: () => st().undo() },
@@ -204,6 +209,8 @@ export function buildCommands(): Command[] {
     { id: "app.help", title: "Keyboard shortcuts and help", section: "App", shortcut: "?", icon: Keyboard, keywords: "about version",
       run: () => useShell.getState().setHelp(true) },
   );
+  cmds.push({ id: "app.chat", title: s.ui.chat ? "Close the AI chat" : "Ask about this design", section: "App", shortcut: "C", icon: MessagesSquare,
+              keywords: "ai chat question explain why assistant openrouter claude", run: () => st().setUi({ chat: !st().ui.chat }) });
   return cmds;
 }
 

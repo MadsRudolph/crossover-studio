@@ -27,6 +27,8 @@ export function markdownReport(r: Report): string {
     ...s.tables.flatMap(t => [mdTable(t, ++nt), ""]),
     ...s.code.flatMap(c => [`**${c.title}**`, "", "```text", c.text, "```", ""]),
     ...s.figures.flatMap(f => [figureSvg(f), "", `*Figure ${++nf}. ${f.caption}*`, ""]),
+    ...(s.rawFigures ?? []).flatMap(f => [f.svg, "", `*Figure ${++nf}. ${f.caption}*`, ""]),
+    ...(s.outro ?? []).flatMap(p => [p, ""]),
   ];
   return [
     "## Loudspeaker design",

@@ -1,5 +1,5 @@
 // Global keyboard shortcuts (docs/DESIGN.md): Ctrl/Cmd+K palette, Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z) undo/redo,
-// 1-9 and 0 views, S snapshot, O optimise, E export, P probe, X x-ray, ? help.
+// 1-9 and 0 views, D design it for me, S snapshot, O optimise, E export, P probe, X x-ray, C AI chat, ? help.
 // Single-key shortcuts stand down while the person types in a field or a dialog/menu is open.
 import { useEffect } from "react";
 import { useStore } from "../../state/store";
@@ -9,6 +9,7 @@ import { toggleOptimiser } from "./optimiser";
 import { focusProbe, openExport, snapshotNow } from "./commands";
 import { useShell } from "./shellState";
 import { viewKeyIndex } from "./viewKeys";
+import { designItForMe } from "../../views/autopilotRun";
 
 export interface ShortcutDoc { keys: string; what: string }
 
@@ -21,14 +22,16 @@ export const SHORTCUTS: { group: string; items: ShortcutDoc[] }[] = [
     { keys: "?", what: "This help" },
   ] },
   { group: "Design", items: [
+    { keys: "D", what: "Design it for me (the autopilot, in the Guide)" },
     { keys: "O", what: "Optimise (again to stop)" },
     { keys: "S", what: "Snapshot the current design" },
     { keys: "E", what: "Export" },
   ] },
   { group: "Views", items: [
-    { keys: "1–9, 0", what: "Switch view (System, Verdict, Response, … 0 = Listen)" },
+    { keys: "1–9, 0", what: "Switch view (the first ten tabs: 1 = Guide, 2 = System, 3 = Verdict, …)" },
     { keys: "P", what: "Type a probe frequency" },
     { keys: "X", what: "X-ray the 3D model" },
+    { keys: "C", what: "Open or close the AI chat (optional)" },
   ] },
   { group: "Controls", items: [
     { keys: "Shift", what: "Hold while dragging a slider for fine steps" },
@@ -87,6 +90,8 @@ export function useGlobalShortcuts() {
         case "e": e.preventDefault(); openExport(); break;
         case "p": e.preventDefault(); focusProbe(); break;
         case "x": e.preventDefault(); s.setUi({ xray: !s.ui.xray }); break;
+        case "c": e.preventDefault(); s.setUi({ chat: !s.ui.chat }); break;
+        case "d": e.preventDefault(); designItForMe(); break;
       }
     };
     window.addEventListener("keydown", onKey);

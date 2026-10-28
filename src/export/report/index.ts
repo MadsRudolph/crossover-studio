@@ -4,7 +4,8 @@
 // design gives byte-identical files, so a group can regenerate the section after every design iteration.
 //
 // Modules: tables.ts (value model, tables), figures.ts (figure data), svg.ts (SVG plotter),
-// latex.ts and markdown.ts (writers), quiz.ts (the quiz sheet).
+// latex.ts and markdown.ts (writers), quiz.ts (the quiz sheet), listening.ts (the Task 4 listening test,
+// only when ratings exist).
 
 import { minidspFileText } from "../minidsp";
 import { ltspiceText } from "../../engine";
@@ -15,12 +16,15 @@ import { quizText } from "./quiz";
 import { alignName, boxTables, checkTables, digitalTables, passiveTables, responseTables, type ReportInput, type Table } from "./tables";
 import { latexFiles } from "./latex";
 import { markdownReport } from "./markdown";
+import { hasListeningResults, listeningSection, type RawFigure } from "./listening";
 
 export type { ReportInput } from "./tables";
+export type { ListeningInput, RawFigure } from "./listening";
+export { hasListeningResults } from "./listening";
 export { figureSvg } from "./svg";
 export { splitSvg } from "./markdown";
 
-export type SectionId = "box" | "digital" | "passive" | "response" | "offaxis" | "checks" | "quiz";
+export type SectionId = "box" | "digital" | "passive" | "response" | "offaxis" | "checks" | "listening" | "quiz";
 
 export const SECTIONS: { id: SectionId; title: string; hint: string }[] = [
   { id: "box", title: "Woofer box (Task 1)", hint: "Fitted T/S parameters, box setting, SPL, excursion, vent speed and the impedance fit" },
@@ -29,6 +33,7 @@ export const SECTIONS: { id: SectionId; title: string; hint: string }[] = [
   { id: "response", title: "System response", hint: "Units and sum on axis with the ±2 dB band, amplifier load, metrics" },
   { id: "offaxis", title: "Off axis", hint: "The sum at every measured angle" },
   { id: "checks", title: "Checks & verdict", hint: "Every check and the verdict scores" },
+  { id: "listening", title: "Listening test (Task 4)", hint: "Method, attributes, ratings as mean ± 95 % CI and the conclusions (only with ratings)" },
   { id: "quiz", title: "Quiz numbers", hint: "Every number above as name = value unit" },
 ];
 export const ALL_SECTIONS: SectionId[] = SECTIONS.map(s => s.id);
@@ -48,6 +53,10 @@ export interface ReportSection {
   tables: Table[];
   code: CodeBlock[];
   figures: Figure[];
+  /** Figures not on a frequency axis (the listening-test ratings), written as given after the others. */
+  rawFigures?: RawFigure[];
+  /** Paragraphs after the tables and figures (the listening test's conclusions). */
+  outro?: string[];
 }
 
 export interface Report {
@@ -131,12 +140,23 @@ function checksSection(x: ReportInput): ReportSection {
   };
 }
 
-/** Build the report for the chosen sections (in the fixed section order). */
-export function buildReport(x: ReportInput, include: readonly SectionId[]): Report {
-  const builders: Record<Exclude<SectionId, "quiz">, (x: ReportInput) => ReportSection> = {
-    box: boxSection, digital: digitalSection, passive: passiveSection, response: responseSection, offaxis: offAxisSection, checks: checksSection,
+function listeningTestSection(x: ReportInput): ReportSection | null {
+  if (!hasListeningResults(x.listening)) return null;
+  const s = listeningSection(x.listening);
+  return {
+    id: "listening", title: "Listening test (Task 4)",
+    intro: s.intro, tables: s.tables, code: [], figures: [], rawFigures: [s.figure], outro: s.conclusions,
   };
-  const content = (Object.keys(builders) as Exclude<SectionId, "quiz">[]).map(id => builders[id](x));
+}
+
+/** Build the report for the chosen sections (in the fixed section order). The listening test is left
+ *  out, chosen or not, until it has ratings. */
+export function buildReport(x: ReportInput, include: readonly SectionId[]): Report {
+  const builders: Record<Exclude<SectionId, "quiz">, (x: ReportInput) => ReportSection | null> = {
+    box: boxSection, digital: digitalSection, passive: passiveSection, response: responseSection, offaxis: offAxisSection, checks: checksSection,
+    listening: listeningTestSection,
+  };
+  const content = (Object.keys(builders) as Exclude<SectionId, "quiz">[]).map(id => builders[id](x)).filter((s): s is ReportSection => !!s);
   const quiz = quizText(content.map(s => ({ title: s.title, tables: s.tables })),
                         [`${x.profile.name}: ${x.designName}`, "Crossover Studio quiz numbers, one name = value unit per line"]);
   const sections: ReportSection[] = content.filter(s => include.includes(s.id));

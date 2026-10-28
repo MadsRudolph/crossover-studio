@@ -17,7 +17,11 @@
    "kind": "cone",
    "diameter_m": 0.211,
    "frame_diameter_m": 0.256,
-   "Re_ohm": 5.7
+   "Re_ohm": 5.7,
+   "xmax_mm": 6,
+   "p_rated_w": 80,
+   "z_nom_ohm": 8,
+   "datasheet": "Scan-Speak 26W/8534G00 data sheet (updated 1 Nov 2021, scan-speak.dk): linear excursion ±6 mm, 100 h RMS noise test (IEC 18.4) 80 W, nominal impedance 8 Ω"
   },
   "mid": {
    "label": "DALI Spektor 2, 5¼″ low/mid",

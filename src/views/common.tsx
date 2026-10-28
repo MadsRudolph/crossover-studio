@@ -12,12 +12,49 @@ import { JUDGE_BAND, db } from "./data";
 import "./views.css";
 
 // ---------------------------------------------------------------- layout
+const LEDE_KEY = "crossover-studio:lede-open";
+let ledeOpen = (() => { try { return localStorage.getItem(LEDE_KEY) === "1"; } catch { return false; } })();
+
+/** The view's lead paragraph, folded to two lines with a "More" that unfolds it. Whether it is unfolded
+ *  is one choice for every view (a student who reads the explanations wants them all). */
+function Lede({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [open, setOpen] = useState(ledeOpen);
+  const [overflows, setOverflows] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // the button only shows when the text runs past two lines (folded or not)
+    const read = () => {
+      const lh = parseFloat(getComputedStyle(el).lineHeight) || 19;
+      setOverflows(el.scrollHeight > 2 * lh + 2);
+    };
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [open]);
+  const toggle = () => {
+    ledeOpen = !open;
+    try { localStorage.setItem(LEDE_KEY, ledeOpen ? "1" : "0"); } catch { /* remembered for this session only */ }
+    setOpen(ledeOpen);
+  };
+  return (
+    <div className={"vw-lede-wrap" + (open ? " is-open" : "")}>
+      <p ref={ref} className={"vw-lede" + (open ? "" : " is-folded")}>{children}</p>
+      {overflows && (
+        <button type="button" className="vw-lede-more" aria-expanded={open} onClick={toggle}>{open ? "Less" : "More"}</button>
+      )}
+    </div>
+  );
+}
+
 export function ViewHeader({ title, children, actions }: { title: string; children?: ReactNode; actions?: ReactNode }) {
   return (
     <header className="vw-head">
       <div className="vw-head-text">
         <h1 className="vw-title">{withUnits(title)}</h1>
-        {children && <p className="vw-lede">{children}</p>}
+        {children && <Lede>{children}</Lede>}
       </div>
       {actions && <div className="vw-head-actions">{actions}</div>}
     </header>
@@ -86,12 +123,21 @@ export function PartChip({ focus, color, children, hint }: { focus: string; colo
   );
 }
 
-export function Card({ title, actions, children, className }: { title?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string }) {
+/** One quiet surface with a small-caps title, an optional one-line subtitle under it, and tools at the
+ *  right. Cards do not nest: inside one, group with space or a `vw-rule`. */
+export function Card({ title, sub, actions, children, className }: {
+  title?: ReactNode; sub?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string;
+}) {
   return (
     <section className={"vw-card" + (className ? " " + className : "")}>
       {(title || actions) && (
         <header className="vw-card-head">
-          {title && <h2 className="vw-card-title">{withUnits(title)}</h2>}
+          {title && (
+            <div className="vw-card-titles">
+              <h2 className="vw-card-title">{withUnits(title)}</h2>
+              {sub && <p className="vw-card-sub">{sub}</p>}
+            </div>
+          )}
           {actions && <div className="vw-card-actions">{actions}</div>}
         </header>
       )}

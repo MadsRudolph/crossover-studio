@@ -1,6 +1,7 @@
 // Report tab: the design as a "Loudspeaker design" section for the group report. A LaTeX folder for
 // Overleaf (booktabs tables, siunitx numbers, pgfplots figures from CSV), the same as Markdown with SVG
 // figures, and the quiz-numbers sheet for DTU Learn. Regenerate it after every design iteration.
+// The listening test (Task 4) joins as its own subsection once the Listening test view holds ratings.
 import { Check, ClipboardList, Copy, Download, FileText, FolderOpen } from "lucide-react";
 import { useMemo, useState } from "react";
 import { assess, type Prepared } from "../engine";
@@ -9,17 +10,22 @@ import { useStore } from "../state/store";
 import type { Design, Profile } from "../types";
 import { Button, EmptyState, ProgressBar, Toggle, toast } from "../ui";
 import { bytesLabel, copyText, pickFolder, saveTextFile, writeFolder } from "./io";
-import { ALL_SECTIONS, SECTIONS, buildReport, reportLatexFiles, reportMarkdown, splitSvg, type SectionId } from "./report";
+import { ALL_SECTIONS, SECTIONS, buildReport, hasListeningResults, reportLatexFiles, reportMarkdown, splitSvg, type SectionId } from "./report";
+import { peekDoc } from "../listentest/store";
 import "./report.css";
 
 const SECTIONS_KEY = "crossover-studio:report-sections";
+/** "off" when the user switched the listening-test section off (lists saved before it existed lack it). */
+const LISTENING_KEY = "crossover-studio:report-listening";
 
 function initialSections(): SectionId[] {
+  let listening = true;
+  try { listening = localStorage.getItem(LISTENING_KEY) !== "off"; } catch { /* storage unavailable */ }
   try {
     const v = JSON.parse(localStorage.getItem(SECTIONS_KEY) ?? "null");
-    if (Array.isArray(v)) return ALL_SECTIONS.filter(id => v.includes(id));
+    if (Array.isArray(v)) return ALL_SECTIONS.filter(id => (id === "listening" ? listening : v.includes(id)));
   } catch { /* storage unavailable or not JSON */ }
-  return ALL_SECTIONS;
+  return ALL_SECTIONS.filter(id => id !== "listening" || listening);
 }
 
 export function ReportPanel({ profile, prep, design, designName }: { profile: Profile; prep: Prepared; design: Design; designName: string }) {
@@ -28,23 +34,30 @@ export function ReportPanel({ profile, prep, design, designName }: { profile: Pr
   const [busy, setBusy] = useState<number | null>(null);
   const [done, setDone] = useState<string | null>(null);
 
+  // the listening test of this profile (read once per open of the panel: it is edited in its own view)
+  const listening = useMemo(() => { const d = peekDoc(profile.id); return d ? { protocol: d.protocol, ratings: d.ratings } : null; }, [profile.id]);
+  const hasListening = hasListeningResults(listening);
+
   const built = useMemo(() => {
     if (!results) return { error: "The design has no results yet.", out: null };
     try {
-      const report = buildReport({ profile, prep, design, results, assessment: assess(prep, design, results), designName }, chosen);
+      const report = buildReport({ profile, prep, design, results, assessment: assess(prep, design, results), designName, listening }, chosen);
       return { error: null, out: { report, files: reportLatexFiles(report), md: reportMarkdown(report) } };
     } catch (e) { return { error: String((e as Error)?.message ?? e), out: null }; }
-  }, [profile, prep, design, results, designName, chosen]);
+  }, [profile, prep, design, results, designName, chosen, listening]);
 
   const toggle = (id: SectionId, on: boolean) => {
     const next = ALL_SECTIONS.filter(s => (s === id ? on : chosen.includes(s)));
     setChosen(next); setDone(null);
-    try { localStorage.setItem(SECTIONS_KEY, JSON.stringify(next)); } catch { /* storage unavailable */ }
+    try {
+      localStorage.setItem(SECTIONS_KEY, JSON.stringify(next));
+      if (id === "listening") localStorage.setItem(LISTENING_KEY, on ? "on" : "off");
+    } catch { /* storage unavailable */ }
   };
 
   if (!built.out) return <EmptyState tone="bad" icon={FileText} title="The report cannot be built" description={built.error ?? ""} />;
   const { report, files, md } = built.out;
-  const none = chosen.length === 0;
+  const none = chosen.filter(id => id !== "listening" || hasListening).length === 0;
   const tex = files[0];
   const tables = report.sections.reduce((n, s) => n + s.tables.length, 0);
   const figures = report.sections.reduce((n, s) => n + s.figures.length, 0);
@@ -91,7 +104,7 @@ export function ReportPanel({ profile, prep, design, designName }: { profile: Pr
         <section className="rp-sections" aria-labelledby="rp-sections-h">
           <h3 id="rp-sections-h" className="label-caps">Sections</h3>
           <ul>
-            {SECTIONS.map(s => (
+            {SECTIONS.filter(s => s.id !== "listening" || hasListening).map(s => (
               <li key={s.id}>
                 <Toggle size="sm" checked={chosen.includes(s.id)} onChange={on => toggle(s.id, on)}>{s.title}</Toggle>
                 <span className="rp-hint">{s.hint}</span>

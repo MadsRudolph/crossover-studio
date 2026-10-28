@@ -1,0 +1,169 @@
+/* Limits view. Only design tokens from docs/DESIGN.md (and the shell's extras in tokens.css). */
+
+.lm-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 12px;
+  flex: 1 0 auto;
+  /* below this the view scrolls rather than squashing the plot */
+  min-height: 400px;
+  height: 0;
+}
+.lm-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.lm-plot { min-height: 0; }
+.lm-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* ------------------------------------------------------------------ level bars */
+.lm-bars {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.lm-bar-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name value" "bar bar" "detail detail";
+  row-gap: 3px;
+}
+.lm-bar-name {
+  grid-area: name;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: var(--fs-12);
+  cursor: pointer;
+}
+.lm-bar-name::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--unit);
+}
+.lm-bar-name:hover { color: var(--text); }
+.lm-bar-value { grid-area: value; font-size: var(--fs-12); }
+.lm-bar { grid-area: bar; height: 6px; }
+.lm-fill.is-good { background: var(--good); }
+.lm-fill.is-warn { background: var(--warn); }
+.lm-fill.is-bad { background: var(--bad); }
+.lm-bar-detail {
+  grid-area: detail;
+  font-size: var(--fs-11);
+  color: var(--text-3);
+}
+.lm-est {
+  padding: 0 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-11);
+  color: var(--warn);
+}
+
+/* ------------------------------------------------------------------ data sheet */
+.lm-ds-unit {
+  margin: 0 0 10px;
+  padding: 6px 0 0 10px;
+  border: 0;
+  box-shadow: inset 2px 0 0 var(--unit);
+}
+.lm-ds-unit legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 0;
+  font-weight: 500;
+  font-size: var(--fs-13);
+  color: var(--text);
+}
+.lm-ds-grid {
+  clear: both;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 10px;
+}
+.lm-ds-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.lm-ds-name {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--fs-11);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.lm-ds-name sub { font-size: 0.8em; }
+.lm-src {
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: var(--fs-11);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.lm-src.is-profile { color: var(--text-3); }
+.lm-src.is-user { color: var(--accent); }
+.lm-src.is-estimate { color: var(--warn); }
+.lm-ds-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: var(--fs-12);
+  color: var(--text-2);
+}
+.lm-ds-label { flex: 1; }
+.lm-notes li { font-size: var(--fs-12); }
+
+@media (max-width: 1280px) {
+  .lm-grid { grid-template-columns: minmax(0, 1fr) 330px; }
+}
+
+/* ------------------------------------------------------------------ legend */
+.lm-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 4px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.lm-leg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: var(--fs-12);
+  cursor: pointer;
+  transition: opacity var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.lm-leg:hover { background: var(--surface-hover); }
+.lm-leg.is-off { opacity: 0.4; }

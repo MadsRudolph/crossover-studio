@@ -97,3 +97,16 @@ async function runInline(profile: Profile, fit: BoxFit, design: Design, options:
     await new Promise(res => setTimeout(res, 0));
   }
 }
+
+// The autopilot ("Design it for me"): box, MiniDSP, passive filters, optimiser and suggestions in recorded steps.
+export { runAutopilot, describeChanges, exactScore, AUTOPILOT_STAGES, type AutopilotStage, type AutopilotStep, type AutopilotProgress, type AutopilotResult, type AutopilotOptions } from "./autopilot";
+
+// Limits: maximum SPL per failure mechanism (stroke, vent, heat, resistors, amplifier clipping).
+export { limits, limitSettings, loadsAt, chainGainDb, partName, pinkShareAbove, VENT_LIMIT_MS, CREST_MUSIC_DB, CREST_IEC_DB, DEFAULT_AMP_VRMS, DEFAULT_LISTEN_M, type LimitsResult, type LimitSettings, type LimitOverrides, type LimitSource, type Mechanism, type MechanismKind, type LoadAt, type UnitLimitSpec } from "./limits";
+export { stockNeighbours } from "./assess";
+
+// Time domain: group delay, impulse and step responses, crossover timing (shares the Listen FIRs).
+export { groupDelay, groupDelayAnalysis, impulseAnalysis, cachedGroupDelay, cachedImpulse, gdThreshold, angleOffset, refDelayOf, TIME_TRACES, GD_FLOOR_DB, GD_SMOOTH_OCT, type TimeTrace, type GroupDelayAnalysis, type ImpulseAnalysis, type XoverTiming, type GdAudibility } from "./timedomain";
+
+// Part sensitivity: each part one basket step and its tolerance either way, ranked.
+export { sensitivity, cachedSensitivity, PART_TOLERANCE, VENT_TOL_M, VENT_STEP_M, type Sensitivity, type SensEntry, type SensVariant, type SensKind, type SensOptions } from "./sensitivity";

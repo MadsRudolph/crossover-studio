@@ -13,6 +13,7 @@ import { useStore } from "../state/store";
 import { UNIT_IDS } from "../types";
 import { Card, crossoverLines, fmtSigned, judgeBand, snapshotSeries, useProbe, useSize } from "./common";
 import { ScoreBadge } from "./ScoreBadge";
+import { ViewInsights } from "../insights/ViewInsights";
 import { TRACE_META, TRACES, checkCounts, db, levelAt, nearest, readProbe, responseRange, type TraceId } from "./data";
 
 export function SystemView() {
@@ -26,6 +27,7 @@ export function SystemView() {
       <div className="vw-sys-stage"><Viewport3D /></div>
       <CompactResponse />
       <aside className={"vw-sys-side" + (more ? " has-more" : "")} aria-label="Probe and checks" ref={side}>
+        <ViewInsights view="system" />
         <ProbeCard />
         <ChecksCard ref={checksRef} />
         {checksHidden && (

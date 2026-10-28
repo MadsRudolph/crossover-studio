@@ -23,7 +23,7 @@ body {
   color: var(--text);
   font-family: var(--font-ui);
   font-size: var(--fs-13);
-  line-height: 1.45;
+  line-height: var(--lh);
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

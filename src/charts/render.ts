@@ -686,6 +686,6 @@ export function drawOverlay(ctx: CanvasRenderingContext2D, fr: Frame, o: Overlay
     pill(ctx, text, fr.x0 - 4 - w / 2, hv.pointerY, theme.text, theme.surface1, [1, fr.x0 - 2]);
   }
   if (o.xTickLabels) {
-    pill(ctx, formatHz(hv.xHz), Xc, fr.y1 + 13, theme.text, theme.surface1, [fr.x0 - 20, fr.W - 2]);
+    pill(ctx, o.xLog ? formatHz(hv.xHz) : formatNumber(hv.xHz, 2), Xc, fr.y1 + 13, theme.text, theme.surface1, [fr.x0 - 20, fr.W - 2]);
   }
 }

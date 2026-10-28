@@ -9,6 +9,7 @@ import { useStore } from "../state/store";
 import type { Results } from "../types";
 import { Card, ViewHeader, crossoverLines, fmtSigned, splitHeights, useProbe, useSize } from "./common";
 import { TRACE_META, TRACES, db, diff, levelAt, nearest, responseRange, type TraceId } from "./data";
+import { ViewInsights } from "../insights/ViewInsights";
 
 const OFF_DASH: number[][] = [[6, 4], [2, 3], [9, 3, 2, 3], [3, 6]];
 
@@ -70,6 +71,7 @@ export function DirectivityView() {
         On axis (solid) against {off.map(a => `${a}°`).join(", ")} (dashed), all units from the same Lab E runs. Below: how far each
         one drops off axis (where it plays within 30 dB of the system level). A small, smooth difference means an even spread; a step at a crossover means the units beam differently there.
       </ViewHeader>
+      <ViewInsights view="directivity" />
       <div className="vw-dir">
         <div className="vw-plots" ref={ref}>
           {size.height > 0 && (

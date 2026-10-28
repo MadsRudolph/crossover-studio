@@ -269,9 +269,8 @@
   border-bottom: 1px solid var(--line);
   background: var(--surface-1);
 }
-/* The view tabs have priority over the curve tools: they never shrink; the tools give way first
-   (trace checkboxes fold into a menu), then the inactive tabs drop to icons (named by tooltip and
-   by their visually hidden label). */
+/* The view tabs share the head with the curve tools: the tools give way first (trace checkboxes fold
+   into a menu), then the tabs collapse to icons (named by tooltip and by their visually hidden label). */
 .cs-workspace {
   container: workspace / inline-size;
 }
@@ -305,44 +304,14 @@
 .cs-muted {
   color: var(--text-3);
 }
-/* Widths measured with 11 views: labelled tabs about 1020 px, the full curve tools up to 370 px. */
+/* The trace checkboxes fold into a menu below about 1440 px of workspace; the tabs collapse on their
+   own (Tabs collapse: tighter labels, then icons for the other groups, then icons only). */
 @container workspace (max-width: 1440px) {
   .cs-traces {
     display: none;
   }
   .cs-traces-menu {
     display: block;
-  }
-  .cs-ws-head .cs-tab {
-    gap: 5px;
-    padding: 0 7px;
-    letter-spacing: 0.04em;
-  }
-}
-@container workspace (max-width: 1160px) {
-  .cs-ws-head:has(.cs-ws-tools:not(:empty)) .cs-tab:not(.is-on) {
-    padding: 0 9px;
-  }
-  .cs-ws-head:has(.cs-ws-tools:not(:empty)) .cs-tab:not(.is-on) .cs-tab-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-}
-@container workspace (max-width: 920px) {
-  .cs-ws-head .cs-tab:not(.is-on) {
-    padding: 0 9px;
-  }
-  .cs-ws-head .cs-tab:not(.is-on) .cs-tab-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
   }
 }
 .cs-traces .cs-check {
@@ -373,13 +342,16 @@
   background: var(--surface-1);
   border-top: 1px solid var(--line);
 }
+.cs-dock {
+  container: dock / inline-size;
+}
 .cs-dock-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  height: 35px;
+  gap: var(--sp-3);
+  height: var(--dock-head-h);
   flex: none;
-  padding: 0 10px 0 6px;
+  padding: 0 var(--sp-3) 0 var(--sp-2);
 }
 .cs-dock-toggle {
   display: inline-flex;
@@ -411,6 +383,17 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity var(--t) var(--ease);
+}
+/* the how-to line is for the open dock; folded, the header is just its name */
+.cs-dock:not(.is-collapsed) .cs-dock-hint {
+  opacity: 1;
+}
+@container dock (max-width: 760px) {
+  .cs-dock-hint {
+    display: none;
+  }
 }
 .cs-dock-body {
   flex: 1;
@@ -425,10 +408,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  height: 32px;
+  gap: var(--sp-3);
+  height: var(--statusbar-h);
   flex: none;
-  padding: 0 8px;
+  padding: 0 var(--sp-2);
   background: var(--surface-1);
   border-top: 1px solid var(--line);
   font-size: var(--fs-12);
@@ -459,7 +442,8 @@
   background: var(--surface-hover);
   border-color: var(--line);
 }
-.cs-chip.is-good { --chip: var(--good); }
+/* a passing check is quiet (a muted green dot); only what needs attention takes colour */
+.cs-chip.is-good { --chip: color-mix(in srgb, var(--good) 60%, var(--text-3)); }
 .cs-chip.is-warn { --chip: var(--warn); }
 .cs-chip.is-bad { --chip: var(--bad); }
 .cs-chip-dot {
@@ -467,7 +451,10 @@
   height: 6px;
   border-radius: 50%;
   background: var(--chip);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chip) 20%, transparent);
+}
+.cs-chip.is-warn .cs-chip-dot,
+.cs-chip.is-bad .cs-chip-dot {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chip) 22%, transparent);
 }
 .cs-chip-label {
   color: var(--text-3);
@@ -492,6 +479,12 @@
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+}
+.cs-sb-quiet {
+  opacity: 0.7;
+}
+.cs-sb-quiet:hover {
+  opacity: 1;
 }
 .cs-sb-muted {
   color: var(--text-3);

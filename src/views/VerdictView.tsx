@@ -15,6 +15,7 @@ import { ViewHeader, crossoverLines, judgeBand, useProbe, useSize } from "./comm
 import { TRACE_META, db, mag, responseRange } from "./data";
 import { RATING_TONE, useAssessment, useSuggestions } from "./assessment";
 import "./verdict.css";
+import { ViewInsights } from "../insights/ViewInsights";
 
 export function VerdictView() {
   const a = useAssessment();
@@ -27,6 +28,7 @@ export function VerdictView() {
         Is this a good crossover, and why. Every criterion says what it measures, why it matters for the sound, what this
         design does and what to change. The score is an engineering judgement from your measurements; the listening test decides.
       </ViewHeader>
+      <ViewInsights view="verdict" />
       <div className="vd-top">
         <Hero a={a} onPick={setPicked} />
         <Suggestions a={a} />
@@ -186,7 +188,7 @@ function Detail({ c }: { c: Criterion }) {
 }
 
 // ---------------------------------------------------------------- the plot for each criterion
-interface PlotSpec {
+export interface PlotSpec {
   title: string; series: PlotSeries[]; yUnit: string; yLabel: string; yRange?: [number, number];
   xRange: [number, number]; bands?: PlotBand[]; hBands?: PlotHBand[]; vLines?: PlotVLine[];
 }
@@ -200,7 +202,7 @@ function phaseDiffDeg(a: { re: Float64Array; im: Float64Array }, b: { re: Float6
   return y;
 }
 
-function specFor(c: Criterion, r: Results, p: Prepared, design: Design): PlotSpec | null {
+export function specFor(c: Criterion, r: Results, p: Prepared, design: Design): PlotSpec | null {
   const on = r.angles["0"], m = r.metrics, level = m.on.level, f = r.f;
   const resp = (units: ("woof" | "mid" | "tw" | "sum")[]): PlotSeries[] => units.map(u => ({
     id: u, label: TRACE_META[u].name, x: f, y: db(on[u]), color: TRACE_META[u].color, width: u === "sum" ? 2.25 : 1.5,

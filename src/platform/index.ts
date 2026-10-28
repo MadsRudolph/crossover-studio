@@ -84,3 +84,24 @@ export async function onFileDrop(cb: (paths: string[]) => void): Promise<() => v
   const { getCurrentWebview } = await import("@tauri-apps/api/webview");
   return getCurrentWebview().onDragDropEvent(e => { if (e.payload.type === "drop") cb(e.payload.paths); });
 }
+
+// ---------------------------------------------------------------- optional AI chat (src-tauri/src/ai.rs)
+// The OpenRouter key is stored by Rust in the app config folder and never comes back here (only a
+// masked hint does). These calls make no network request except aiTestKey and aiChat.
+export interface AiKeyStatus { stored: boolean; hint: string | null }
+/** Error shape of the ai_* commands; src/chat/client.ts puts it in plain words. */
+export interface AiCommandError { kind: "no-key" | "http" | "offline" | "cancelled" | "storage" | "bad-key"; status?: number; message: string }
+export const aiKeyStatus = () => invoke<AiKeyStatus>("ai_key_status");
+/** Saves the key, or removes it when null. */
+export const aiSetKey = (key: string | null) => invoke<AiKeyStatus>("ai_set_key", { key });
+/** Checks a key with OpenRouter (the stored one when null); resolves to its usage and limit. */
+export const aiTestKey = (key: string | null) => invoke<unknown>("ai_test_key", { key });
+/** One streamed chat completion: every server-sent `data:` payload is passed to onData. */
+export async function aiChat(body: string, onData: (data: string) => void): Promise<void> {
+  if (!isTauri()) throw new Error(`"ai_chat" needs the desktop app (running in a browser)`);
+  const { Channel } = await import("@tauri-apps/api/core");
+  const ch = new Channel<string>();
+  ch.onmessage = onData;
+  return invoke<void>("ai_chat", { body, onEvent: ch });
+}
+export const aiCancel = () => invoke<void>("ai_cancel");

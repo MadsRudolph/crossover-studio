@@ -1,0 +1,57 @@
+/* Time view: plots on the left (group delay over step and impulse), arrivals and the explanation on the right. */
+.tm-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 12px;
+  flex: 1 1 0;
+  /* three stacked plots need room: below this the view scrolls instead of squeezing them */
+  min-height: 440px;
+}
+.tm-plots {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+}
+.tm-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+}
+.tm-arrivals {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: var(--fs-13);
+}
+.tm-arrivals li {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+.tm-arrivals .mono { color: var(--text); font-variant-numeric: tabular-nums; }
+.tm-arr-name { color: var(--text-2); }
+.tm-note {
+  margin: 10px 0 0;
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  color: var(--text-2);
+}
+.tm-why p {
+  margin: 8px 0 0;
+  font-size: var(--fs-12);
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.tm-why em { font-style: normal; color: var(--text); }
+.tm-why .mono { color: var(--text); }
+@media (max-width: 1280px) {
+  .tm-body { grid-template-columns: minmax(0, 1fr) 260px; }
+}

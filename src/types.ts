@@ -43,6 +43,18 @@ export interface UnitInfo {
   frame_diameter_m: number;
   /** Voice-coil DC resistance (multimeter), ohm. Needed for the woofer box fit. */
   Re_ohm?: number;
+  // Data-sheet limits, all optional: the Limits view uses them (and labelled estimates without them).
+  /** Linear excursion X_max, one way (peak), mm. */
+  xmax_mm?: number;
+  /** Rated long-term power (IEC 60268-5 noise test), W: U^2 / z_nom at the terminals. */
+  p_rated_w?: number;
+  /** The test high-pass the rating was measured through (tweeters), Hz: only the share of the rated
+   *  noise power above it reaches the coil, and that share is what the limit compares with. */
+  p_rated_hp_hz?: number;
+  /** Nominal (rated) impedance the power rating refers to, ohm (default 8). */
+  z_nom_ohm?: number;
+  /** Where these values come from (data sheet name, date, URL). */
+  datasheet?: string;
 }
 
 export interface VentSpec {
@@ -112,6 +124,15 @@ export interface Profile {
   components: { L: number[]; C: number[]; R: number[] };
   /** Design rules for the checks and the optimiser. */
   limits: { wm: [number, number]; mt: [number, number]; tw_fs_hz: number };
+  /** The power amplifier, for the Limits view (optional: a 50 W into 8 ohm channel is assumed). */
+  amp?: AmpInfo;
+}
+
+export interface AmpInfo {
+  /** Largest clean sine output per channel, V rms (e.g. 20 V = 50 W into 8 ohm). */
+  max_vrms: number;
+  /** Model or where the figure comes from. */
+  note?: string;
 }
 
 // ---------------------------------------------------------------- box fit (from the woofer impedances)

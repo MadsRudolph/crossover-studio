@@ -1,0 +1,121 @@
+/* Hint strip at the top of a view (ViewInsights): one slim row per insight, coloured by severity. */
+.ins-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: none;
+  container: hints / inline-size;
+}
+.ins-hint {
+  --sev: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  padding: 3px 4px 3px 10px;
+  border: 1px solid color-mix(in srgb, var(--sev) 30%, var(--line));
+  border-left: 3px solid var(--sev);
+  border-radius: var(--r);
+  background: color-mix(in srgb, var(--sev) 6%, var(--surface-1));
+  animation: ins-in var(--t) var(--ease);
+}
+.ins-hint.is-bad { --sev: var(--bad); }
+.ins-hint.is-warn { --sev: var(--warn); }
+.ins-hint.is-info { --sev: var(--accent); }
+.ins-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sev);
+}
+.ins-hint-text {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.ins-hint-title {
+  flex: none;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--fs-13);
+  font-weight: 500;
+  color: var(--text);
+}
+.ins-hint-detail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+.ins-hint-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+.ins-hint-actions .cs-btn-label {
+  font-variant-numeric: tabular-nums;
+}
+.ins-more {
+  align-self: flex-start;
+  padding: 1px 4px;
+  border: 0;
+  background: none;
+  color: var(--text-3);
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: var(--fs-11);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.ins-more:hover {
+  color: var(--accent);
+}
+/* narrow workspaces: the detail gives way first, then the button labels */
+@container workspace (max-width: 1100px) {
+  .ins-hint-detail {
+    display: none;
+  }
+}
+@container workspace (max-width: 860px) {
+  .ins-hint-actions .cs-btn:not(.cs-btn-subtle) .cs-btn-label {
+    display: none;
+  }
+}
+/* a narrow column (the System view's side): the title wraps and the buttons go underneath */
+@container hints (max-width: 520px) {
+  .ins-hint {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding: 6px 4px 4px 10px;
+  }
+  .ins-dot {
+    margin-top: 5px;
+  }
+  .ins-hint-text {
+    flex-basis: calc(100% - 20px);
+    white-space: normal;
+  }
+  .ins-hint-detail {
+    display: none;
+  }
+  .ins-hint-actions {
+    flex-wrap: wrap;
+    margin-left: 7px;
+  }
+}
+@keyframes ins-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ins-hint { animation: none; }
+}

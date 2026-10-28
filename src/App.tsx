@@ -1,5 +1,6 @@
-// Application shell: title bar, inspector | workspace (+ signal-chain dock), status bar, and the layers
-// above them (palette, help, wizard, export, toasts). Panel sizes are remembered between sessions.
+// Application shell: title bar, inspector | workspace (+ signal-chain dock) | optional AI chat, status bar,
+// and the layers above them (palette, help, wizard, export, toasts). Panel sizes are remembered between
+// sessions (the layout with the chat open is remembered separately from the one without).
 import { useEffect, useState } from "react";
 import { Group, Panel, Separator, useDefaultLayout, usePanelRef } from "react-resizable-panels";
 import { BUNDLED_PROFILES, useStore } from "./state/store";
@@ -17,6 +18,7 @@ import { useGlobalShortcuts } from "./ui/shell/shortcuts";
 import { Inspector } from "./ui/inspector/Inspector";
 import { ImportWizard } from "./wizard/ImportWizard";
 import { ExportSheet } from "./export/ExportSheet";
+import { ChatPanel } from "./chat/ChatPanel";
 
 // localStorage can throw (private mode, blocked storage): layouts then simply are not remembered
 const layoutStorage = {
@@ -25,6 +27,14 @@ const layoutStorage = {
 };
 
 const DOCK_COLLAPSED_PX = 36;
+
+/** `?chat=1` opens the chat panel on start (deep links, screenshots), like `?sheet=` does for the sheets. */
+function useUrlChat() {
+  useEffect(() => {
+    try { if (new URLSearchParams(window.location.search).get("chat") === "1") useStore.getState().setUi({ chat: true }); }
+    catch { /* no URL to read */ }
+  }, []);
+}
 
 function useBoot(): "loading" | "leaving" | "done" {
   const profile = useStore(s => s.profile);
@@ -75,8 +85,10 @@ export default function App() {
   const boot = useBoot();
   const wizard = useStore(s => s.ui.wizard);
   const exportSheet = useStore(s => s.ui.exportSheet);
+  const chat = useStore(s => s.ui.chat);
+  useUrlChat();
 
-  const main = useDefaultLayout({ id: "cs-layout-main", storage: layoutStorage, panelIds: ["inspector", "work"] });
+  const main = useDefaultLayout({ id: "cs-layout-main", storage: layoutStorage, panelIds: chat ? ["inspector", "work", "chat"] : ["inspector", "work"] });
   const work = useDefaultLayout({ id: "cs-layout-work", storage: layoutStorage, panelIds: ["view", "dock"] });
   const dockRef = usePanelRef();
   const [dock, setDock] = useState({ collapsed: false, height: 160 });
@@ -123,6 +135,16 @@ export default function App() {
               </Panel>
             </Group>
           </Panel>
+          {chat && (
+            <>
+              <Separator className="cs-sep cs-sep-v" aria-label="Resize the chat" />
+              <Panel id="chat" defaultSize={360} minSize={300} maxSize={600} groupResizeBehavior="preserve-pixel-size" className="cs-pane-chat">
+                <ErrorBoundary label="The chat">
+                  <ChatPanel />
+                </ErrorBoundary>
+              </Panel>
+            </>
+          )}
         </Group>
         <StatusBar />
       </div>

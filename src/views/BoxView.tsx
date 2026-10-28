@@ -11,6 +11,7 @@ import { focusControl } from "../ui/shell/commands";
 import { useStore } from "../state/store";
 import { Card, Readout, ViewHeader, fmtSigned, splitHeights, useProbe, useSize } from "./common";
 import { db, mag, rmsDbError } from "./data";
+import { ViewInsights } from "../insights/ViewInsights";
 
 type Page = "model" | "validation";
 let lastPage: Page = "model";   // remembered while the app runs, so switching views keeps the page
@@ -31,6 +32,7 @@ export function BoxView() {
           ? <>The woofer in its box from the circuit fitted to the Lab D impedances: 2.83 V, 1 m, half space, no room. Dashed: the same box with the vents plugged, as the Lab E woofer was measured.</>
           : <>The fitted model laid over the measurements: impedances were fitted, the near-field curves are predictions, so their agreement is the real test.</>}
       </ViewHeader>
+      <ViewInsights view="box" />
       <div className="vw-box">
         <div className="vw-box-main">{page === "model" ? <ModelPlots /> : <ValidationPlots />}</div>
         <aside className="vw-box-side"><FitCard /></aside>

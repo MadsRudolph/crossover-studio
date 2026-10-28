@@ -10,6 +10,7 @@ import { useStore } from "../state/store";
 import type { PassiveBranch } from "../types";
 import { PartChip, ViewHeader, splitHeights, useProbe, useSize } from "./common";
 import { cmul, db, phaseDeg, phaseRange, unwrapDeg } from "./data";
+import { ViewInsights } from "../insights/ViewInsights";
 
 export function FiltersView() {
   const prep = useStore(s => s.prep)!;
@@ -49,6 +50,7 @@ export function FiltersView() {
         Electrical transfer functions per 1 V into the MiniDSP. Dashed: the passive filters alone, loaded by the real driver
         impedance (not a resistor). Solid: what reaches the midrange and tweeter after the digital high-pass as well.
       </ViewHeader>
+      <ViewInsights view="filters" />
       <div className="vw-strip vw-filter-strip">
         <div className="vw-fgroup">
           <span className="vw-ro-label">MiniDSP</span>

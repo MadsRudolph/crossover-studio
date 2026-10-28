@@ -82,6 +82,47 @@
   --fs-18: 18px;
   --fs-24: 24px;
   --fs-32: 32px;
+  /* in between body and a card title: view titles at small sizes, lead numbers */
+  --fs-14: 14px;
+  --fs-20: 20px;
+  --lh-tight: 1.2;
+  --lh: 1.45;
+  --lh-loose: 1.6;
+
+  /* spacing: one 4 px scale for every padding and gap (docs/LOOK_AND_FEEL.md). Views and panels use
+     these names instead of literal pixels, so the whole app breathes the same way. */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+  --sp-8: 40px;
+  /* the rhythm of a view: its padding, the gap between its blocks, and inside a card */
+  --pad-view: var(--sp-5) var(--sp-6) var(--sp-5);
+  --pad-view-x: var(--sp-6);
+  --gap-view: var(--sp-4);
+  --pad-card: var(--sp-4);
+  --gap-card: var(--sp-3);
+  /* the widest a line of prose may run, whatever the window */
+  --measure: 84ch;
+
+  /* chrome sizes: the bars and columns every view shares */
+  --titlebar-h: 48px;
+  --tabbar-h: 44px;
+  --statusbar-h: 30px;
+  --dock-head-h: 34px;
+  --insp-w: 320px;
+  --rail-w: 56px;
+  --side-w: 300px;
+  --ctl-h: 28px;
+  --ctl-h-sm: 24px;
+
+  /* the quietest line: dividers inside a surface, where --line would read as one box too many */
+  --line-soft: color-mix(in srgb, var(--line) 62%, transparent);
+  /* a card on the workspace: one step above the background, with no shadow of its own */
+  --surface-card: var(--surface-1);
 }
 
 :root[data-theme="light"] {

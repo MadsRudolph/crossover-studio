@@ -47,6 +47,7 @@ recent list.
 | `measurements` | object | **required** | [All measured data](#measurements). |
 | `components` | object | **required** | [Parts you may use](#components). |
 | `limits` | object | **required** | [Design targets](#limits) for the checks and the optimiser. |
+| `amp` | object | | [The power amplifier](#amp), for the Limits view. |
 
 ## `conditions`
 
@@ -68,6 +69,14 @@ An object with exactly the keys `woof`, `mid` and `tw`, each:
 | `diameter_m` | number | **required** | Effective radiating diameter. S_D = π·D²/4 enters the box model, so use the data-sheet S_D if you have it. |
 | `frame_diameter_m` | number | **required** | Outer frame diameter (3D model only). |
 | `Re_ohm` | number | | Voice-coil DC resistance (multimeter). **Strongly recommended for the woofer**: the box fit uses it. Without it, R_E is estimated from the impedance minimum. |
+| `xmax_mm` | number | | Linear excursion X_max, one way (peak), in **millimetres**, from the data sheet. The Limits view uses it; without it a typical value is used and marked as an estimate. |
+| `p_rated_w` | number | | Rated long-term power (IEC 60268-5 noise test, e.g. "100 h RMS noise test"), W. It is read as U²/Z_nom at the unit's terminals. |
+| `p_rated_hp_hz` | number | | The test high-pass the power rating was measured through, Hz (tweeter data sheets usually state one). Only the pink-noise share above it reached the coil, so the limit uses that share of `p_rated_w`. |
+| `z_nom_ohm` | number | | Nominal impedance the power rating refers to, Ω. Default: R_E / 0.8, rounded. |
+| `datasheet` | string | | Where these values come from (data sheet, date, link), for the record. |
+
+The data-sheet fields are optional. Values typed into the Limits view are kept on the computer for that profile
+and take precedence; the profile file itself is not changed.
 
 ## `woofer_box`
 
@@ -175,6 +184,17 @@ part in this list as *course basket (Appendix 1)*.
 | `tw_fs_hz` | number | **required** | Tweeter resonance. The *Tweeter protected* check wants the tweeter ≥ 12 dB down here. System D: `1450`. |
 
 The crossover-finding windows of the metrics are these bands widened by ×0.6 and ×1.5.
+
+## `amp`
+
+| Field | Type | | Meaning |
+|---|---|---|---|
+| `max_vrms` | number | **required** in `amp` | Largest clean sine per amplifier channel, V rms. 50 W into 8 Ω is 20 V. Without `amp` the Limits view assumes 20 V and says so. |
+| `note` | string | | The amplifier model or where the figure comes from. |
+
+```json
+"amp": { "max_vrms": 20, "note": "lab amplifier, 50 W into 8 Ω per channel" }
+```
 
 ## A minimal example
 

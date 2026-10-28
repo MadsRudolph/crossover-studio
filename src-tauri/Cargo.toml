@@ -26,6 +26,10 @@ tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 flate2 = "1.1.10"
 thiserror = "2.0.21"
+# The optional AI chat (src/ai.rs): HTTPS to OpenRouter with rustls and the ring provider, so no OpenSSL
+# and no C toolchain beyond the one Tauri needs, on Linux and Windows alike.
+reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider", "http2", "system-proxy"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration

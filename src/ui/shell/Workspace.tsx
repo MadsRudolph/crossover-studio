@@ -1,7 +1,9 @@
+// The workspace: the view tabs (grouped Guide | Design | Analyse | Build & test, collapsing to icons as
+// the window narrows), the curve tools of the open view, and the open view itself.
 import { ChevronDown, Import, RotateCcw, TriangleAlert } from "lucide-react";
 import { BUNDLED_PROFILES, useStore, type ViewId } from "../../state/store";
 import { UNIT_IDS } from "../../types";
-import { VIEWS } from "../../views";
+import { VIEW_GROUPS, VIEWS } from "../../views";
 import { Button } from "../Button";
 import { Checkbox } from "../Toggle";
 import { Menu } from "../Menu";
@@ -18,6 +20,7 @@ const VIEW_TOOLS: Partial<Record<ViewId, { traces: boolean; angle: boolean }>> =
   phase: { traces: true, angle: true },
   directivity: { traces: true, angle: false },
   compare: { traces: false, angle: true },
+  time: { traces: true, angle: true },
 };
 const TRACE_COLOR = { woof: "var(--woof)", mid: "var(--mid)", tw: "var(--tw)", sum: "var(--sum)" };
 const TRACE_NAME = { woof: "Woofer", mid: "Mid", tw: "Tweeter", sum: "Sum" };
@@ -38,7 +41,9 @@ export function Workspace() {
           idBase="cs-view"
           value={def.id}
           onChange={setView}
-          items={VIEWS.map((v, i) => ({ id: v.id, label: v.title, icon: v.icon, shortcut: viewKey(i) }))}
+          items={VIEWS.map((v, i) => ({ id: v.id, label: v.title, icon: v.icon, shortcut: viewKey(i), group: v.group }))}
+          groups={VIEW_GROUPS}
+          collapse
         />
         <div className="cs-ws-tools">{VIEW_TOOLS[def.id] && results && <CurveTools {...VIEW_TOOLS[def.id]!} />}</div>
       </div>

@@ -9,6 +9,7 @@ import { fmtFreq, fmtOhm } from "../ui";
 import { useStore } from "../state/store";
 import { Readout, ViewHeader, fmtSigned, splitHeights, useProbe, useSize } from "./common";
 import { mag, minIn, nearest, phaseDeg } from "./data";
+import { ViewInsights } from "../insights/ViewInsights";
 
 const MIN_BAND: [number, number] = [200, 15000];
 
@@ -66,6 +67,7 @@ export function ImpedanceView() {
         The load amplifier channel 2 sees: the passive board with both drivers, built on their measured Lab D impedances (dashed).
         The shaded strip marks 0–4 Ω; staying above it keeps the amplifier comfortable.
       </ViewHeader>
+      <ViewInsights view="impedance" />
       <div className="vw-strip">
         <Readout label="Minimum, 200 Hz–15 kHz" value={min ? fmtOhm(min.y, { bare: true }) : "—"} unit="Ω" tone={tone}
                  onClick={min ? () => setProbe(min.x) : undefined} hint={min ? `at ${fmtFreq(min.x)}; click to probe there` : undefined} />

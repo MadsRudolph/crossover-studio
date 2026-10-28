@@ -52,6 +52,28 @@ the probe, or press **P** and type a frequency.
 **As built** (no number key: open it with its tab or with Ctrl+K, "As built") puts the anechoic measurement of
 the finished speaker over the prediction and ranks likely build faults (see *Task 3: check the build*).
 
+## The Guide: what to do next
+
+The **Guide** (key 1) is where the app opens. It shows where your design stands: the score, the five
+workflow steps (click one to open it in the inspector) and how many things need fixing.
+
+- **Next thing to do** is the single most important finding, in plain words, with a small plot of the
+  curve it is about (the problem region shaded, its frequency marked). **Apply fix** makes the tested
+  change (one undo step, and the toast has Undo). **Show me in …** opens the view that explains it, moves
+  the probe there and highlights the control in the inspector. **Skip** moves on to the next one.
+- **Everything else** lists the other findings by severity; click one to expand it. **What's already
+  right** lists the criteria you meet.
+- Every other view shows up to two of these findings as hints at its top. Dismiss them with ×, or follow
+  "+N more" back to the Guide.
+
+### Design it for me
+**Design it for me** (or D, or Ctrl+K "Design it for me") works out a whole design in five steps: it tunes
+the box, sets the MiniDSP crossover, chooses the passive filters, polishes with the optimiser and applies
+the verdict's tested suggestions. Each step says what it chose, why, and the numbers that decided it.
+Nothing changes until you press **Accept all** (one undo step), **Accept up to here** on a step, or
+**Discard**. A step is kept only if it does not lower the score, so the result is never worse than what
+you had. If it cannot improve the design, it says so. Check the reasons before you put them in the report.
+
 ## Task 1: tune the woofer box
 
 The woofer was measured in Lab E with the vent plugged. Crossover Studio fits a driver and box model to your
@@ -197,6 +219,46 @@ Treat the result as a starting point, not as the answer. It optimises the curves
 nothing about how the speaker sounds or how many coils your group has left. The report should still explain
 *why* the design works.
 
+## The time domain
+
+**Time** (Analyse group) shows how long each unit takes to answer.
+
+- **Group delay** (top): the delay of each unit and the sum against frequency. A unit is drawn only where it is within 20 dB of the sum. The dashed **Audible above** line is the threshold of Blauert & Laws (1978), measured from the midband; below 500 Hz it is extended as 1.6 periods, which is an assumption. Below 80 Hz the curve comes from the box model, because the measured phase is too noisy down there.
+- **Step and impulse response** (below): the speaker's answer to a step and to a click, for 1 V into the MiniDSP. **Sum / Units** switches the impulse plot between the whole speaker and each unit. **6 ms / 40 ms** sets the time window. The diamonds mark when each unit's peak arrives.
+- **Time zero** is the arrival over the profile's reference distance, as in the Phase view. Only the differences between the units carry meaning. A 30° run is moved onto the on-axis time base first.
+- **Readouts**: group delay at each crossover and which unit is first, the audibility (below 100 % is not heard), and the extra bass delay of the vented box. Click a readout to probe it.
+- **Why it is not flat:** an LR4 crossover adds up to a flat level but not to a straight phase. It delays everything below the crossover by about 2√2 / (2π f_c) (1.4 ms at 325 Hz). This is normal and inaudible in a good design. A phase-linear crossover would need FIR filters, which the course MiniDSP does not run.
+- The trace and angle tools in the tab bar work here as in Response.
+
+## Which part matters: sensitivity
+
+**Sensitivity** (Analyse group) tells you which values to choose with care and which parts to measure with the LCR meter.
+
+- Every passive part (filter parts, L-pad, Zobel), the crossover frequency, the woofer gain and the vent is changed on its own. **Basket step** moves it one value down and up in the course basket. **Tolerance** moves it by L ±5 %, C ±10 %, R ±5 %; the vent by ±2 mm; the MiniDSP is exact.
+- The **tornado** shows the largest change of the smoothed on-axis sum (150 Hz–15 kHz) for each side, coloured by the unit it acts on, with the frequency and the verdict change (points). Longest bars first.
+- **Click a bar** to show that control in the inspector and move the probe to where it acts. **Response overlay** draws the sum with that part changed as a band.
+- **At the crossover** names the part whose one basket step moves the sum most near a crossover: choose it with care.
+- **Measure with the LCR meter** lists the two parts whose tolerance alone moves the sum most. Measure them before you solder and use the basket part closest to the design value.
+- The vent mostly acts below 150 Hz, outside the judged band: use the Box view for it.
+
+## Limits: how loud can it play?
+
+The **Limits** view shows how loud the speaker can play before a part reaches its limit, and which part that is.
+The headline gives the loudest clean level at 1 m and at your listening distance, for music-like pink noise
+(switch between *Music · 12 dB crest* and the IEC *Test noise · 6 dB crest*).
+
+- **The plot** has one curve per part: woofer and midrange/tweeter stroke (X_max), voice-coil heat, vent noise
+  (17 m/s), each crossover resistor (5 W assumed) and both amplifier channels. Each curve is the level a steady
+  sine at that frequency reaches before that part gives up. The bright line is the lowest of them. Click a legend
+  entry to hide a curve.
+- **At this level:** drag the slider to a programme level and read how close each part is to its limit, in % of
+  X_max, of the power rating or of the amplifier's clipping voltage. Click a part to jump to the control that changes it.
+- **Data sheet:** enter X_max (mm, one way), the rated power (W), the high-pass it was rated through (tweeters),
+  Z_nom, your amplifier's clean output (V rms) and the listening distance. Missing values use typical estimates,
+  marked *estimate*. Your values stay on this computer for this profile.
+- The Lab E responses include the amplifier's gain at its volume setting. The app removes it using the woofer box
+  model, so the levels are real dB SPL. It is a linear model: a real speaker compresses a little before these limits.
+
 ## Task 3: build it: MiniDSP and passive board
 
 Press **E** to open the export sheet.
@@ -298,7 +360,26 @@ Every magnitude has its phase panel under it, and every dB value names its refer
 number with its unit, set with siunitx. Regenerate the section after each design iteration so the report and
 the quiz always match the design you hand in.
 
-## Task 4: listening test tips
+## Task 4: the listening test
+
+The guide asks for a methodical test, not casual listening. **Listening test** (tab or Ctrl+K) walks you through
+it in four steps, following IEC 60268-13 and Bech & Zacharov, *Perceptual Audio Evaluation*. Press **Example** to
+see a finished test first (it is not saved).
+
+1. **Protocol.** Add what you compare: *Current design* or a snapshot (frozen copies), *Flat*, or a *Room speaker*
+   (your built box, a reference speaker). Mark one as **Ours**. Name your tracks, keep about six attributes
+   (each has a descriptor and labelled 1 and 7), and set listeners, repetitions and the level note.
+2. **Sessions.** The play order is blind (new letters for every listener) and balanced (a Williams Latin square
+   from the seed). **Print sheets** (choose *Save as PDF*) gives one page per listener plus the leader's key.
+3. **Run.** *Play in app* plays design variants through the Listen engine, level matched over 150 Hz–15 kHz:
+   press the letters, rate, *Next trial*. *Enter from sheet* types in the paper sheets; the seed decodes them.
+4. **Results.** Mean ± 95 % CI per attribute (Student's t, listeners as the unit), a plain-language conclusion,
+   and for each attribute its frequency region and control (harshness → 2–6 kHz → tweeter Rs), with a tested fix.
+
+**Save…/Open…** moves the test between machines as JSON. With ratings, *Export → Report* gains a "Listening test
+(Task 4)" section: the method, booktabs tables and a mean ± CI figure.
+
+### Listening tips
 
 The project guide asks for a methodical listening test in the IEC listening room, not casual listening.
 Some things that make it work:
@@ -332,6 +413,24 @@ measurement files and let everyone import them.
 
 Opening a design replaces the current one as a single undo step, so **Ctrl+Z** brings yours back. A design
 made for another profile opens after a warning. Its values will load, but they were tuned for other drivers.
+
+## Asking about your design (optional AI chat)
+
+Click the chat button in the title bar, press **C**, or choose **Ask about this design** in Ctrl+K. The chat
+answers questions such as "why is there a dip at 2 kHz?" in plain words, from your own design's numbers.
+
+- **Set-up (once):** paste an OpenRouter API key (make one at openrouter.ai/keys), press **Test key**, and pick
+  a model. Claude Opus 5.5 gives the best answers (about $0.08 a question); Haiku 5.5 costs under a cent.
+- **What is sent:** only when you send a question, a summary of your design (drivers, box, parts, results,
+  verdict and hints) and your question go to OpenRouter. Your measurement files are never sent. With the chat
+  closed or unused, the app makes no network requests.
+- **How it checks itself:** the model reads levels and phases from the app's engine, tests changes on a copy
+  of your design, and only then proposes one. A proposal is a card with the score before and after: **Apply**
+  changes the design (Ctrl+Z undoes it), **Dismiss** leaves it.
+- It can open the view and frequency it is talking about. It says so when a question needs a measurement
+  the app does not have.
+- The key is stored on your computer only, in the app's settings folder. **Remove** in the chat settings
+  deletes it.
 
 ## Keyboard
 

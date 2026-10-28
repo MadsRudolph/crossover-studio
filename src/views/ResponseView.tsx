@@ -11,6 +11,7 @@ import { UNIT_IDS, type Design } from "../types";
 import type { Prepared } from "../engine";
 import { Readout, ViewHeader, crossoverLines, judgeBand, snapshotSeries, splitHeights, useProbe, useSize } from "./common";
 import { TRACE_META, TRACES, db, levelAt, powerSumDb, responseRange, shownAngles, terminalDrive } from "./data";
+import { ViewInsights } from "../insights/ViewInsights";
 
 const ANGLE_DASH: number[][] = [[], [6, 4], [2, 3], [9, 3, 2, 3]];
 
@@ -90,6 +91,7 @@ export function ResponseView() {
         Each unit's measured anechoic response through its filters, and their complex sum, for 1 V into the MiniDSP.
         The band is ±2 dB around the system level over 150 Hz–15 kHz; dashed lines mark the acoustic crossovers.
       </ViewHeader>
+      <ViewInsights view="response" />
       <div className="vw-strip">
         <Readout label="Spread 0°" value={spread.toFixed(1)} unit="dB" tone={spread <= 4 ? "good" : spread <= 6 ? "warn" : "bad"}
                  hint="Peak-to-peak of the 1/6-octave smoothed sum, 150 Hz–15 kHz (aim ±2 dB = 4 dB)" />

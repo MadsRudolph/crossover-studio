@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Crosshair, Cpu, FolderOpen } from "lucide-react";
+import { Crosshair, Cpu } from "lucide-react";
 import { compute, probeSample } from "../../engine";
 import { useStore } from "../../state/store";
 import type { Check, CheckState, Results } from "../../types";
@@ -59,7 +59,6 @@ const STATE_WORD: Record<CheckState, string> = { good: "OK", warn: "Check", bad:
 export function StatusBar() {
   const results = useStore(s => s.results);
   const prep = useStore(s => s.prep);
-  const profile = useStore(s => s.profile);
   const probe = useStore(s => s.probe);
   const angle = useStore(s => s.ui.angle);
   const setProbe = useStore(s => s.setProbe);
@@ -104,13 +103,8 @@ export function StatusBar() {
             </Tooltip>
           )}
         </div>
-        {profile && (
-          <span className="cs-sb-item" title={profile.notes}>
-            <FolderOpen size={12} strokeWidth={1.9} aria-hidden />
-            {profile.name}
-          </span>
-        )}
-        <span className="cs-sb-item mono" title="Time the engine needs for a full recompute of every curve and check">
+        {/* the profile's name is in the title bar and the inspector; only the engine time stays here, quietly */}
+        <span className="cs-sb-item cs-sb-quiet mono" title="Time the engine needs for a full recompute of every curve and check">
           <Cpu size={12} strokeWidth={1.9} aria-hidden />
           {engineMs === null ? "—" : fmtMs(engineMs)}
         </span>

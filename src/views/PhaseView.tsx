@@ -10,6 +10,7 @@ import { useStore } from "../state/store";
 import type { AngleResult, CArray, UnitId } from "../types";
 import { Card, ViewHeader, crossoverLines, fmtSigned, splitHeights, useProbe, useSize } from "./common";
 import { TRACE_META, TRACES, alignTurns, nearest, phaseRange, shownAngles, summingGainDb, unwrapDeg } from "./data";
+import { ViewInsights } from "../insights/ViewInsights";
 
 const ANGLE_DASH: number[][] = [[], [6, 4]];
 
@@ -91,6 +92,7 @@ export function PhaseView() {
         Phase of each contribution (drawn where it is within 30 dB of the sum) with the same distance compensation (d = {prep.profile.conditions.phase_ref_distance_m.toFixed(2)} m) as the
         LTspice files. Below: how much the sum beats adding powers — +3 dB means two units in phase, 0 dB uncorrelated, below 0 they cancel.
       </ViewHeader>
+      <ViewInsights view="phase" />
       <div className="vw-strip vw-dials">
         <CrossoverDial p={prep} out={on} label="Woofer / midrange" a="woof" b="mid" f={m.x_wm} onProbe={setProbe} />
         <CrossoverDial p={prep} out={on} label="Midrange / tweeter" a="mid" b="tw" f={m.x_mt} onProbe={setProbe} />
