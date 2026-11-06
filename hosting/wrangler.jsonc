@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "crossover-studio",
+  "account_id": "a1746936cdb6f61f33f31a2a72e27500",
+  "compatibility_date": "2026-10-20",
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": { "directory": "./public", "not_found_handling": "single-page-application" },
+  "routes": [{ "pattern": "crossover.madsrudolph.dev", "custom_domain": true }],
+  "observability": { "enabled": true }
+}

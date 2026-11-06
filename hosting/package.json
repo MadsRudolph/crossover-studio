@@ -1,0 +1,12 @@
+{
+  "name": "crossover-studio-hosting",
+  "private": true,
+  "scripts": {
+    "build": "cd .. && npm run build && cd hosting && node build.mjs",
+    "check": "npm run build && wrangler deploy --dry-run",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.136.1"
+  }
+}
